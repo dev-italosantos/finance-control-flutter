@@ -14,13 +14,13 @@ class AppWidget extends StatelessWidget {
         textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme)
             .apply(bodyColor: Colors.white)
             .copyWith(
-          bodyText1: const TextStyle(color: Colors.blueAccent),
-          bodyText2: const TextStyle(color: Colors.blueAccent),
+          bodyLarge: const TextStyle(color: Colors.blueAccent),
+          bodyMedium: const TextStyle(color: Colors.blueAccent),
         ),
       ),
       debugShowCheckedModeBanner: false,
-      title: 'Portfólio Dev Italo Santos',
-      home: HomePage(),
-    );;
+      title: 'Moedas Base',
+      home: const HomePage(),
+    );
   }
 }
