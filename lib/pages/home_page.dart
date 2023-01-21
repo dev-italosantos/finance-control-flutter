@@ -29,7 +29,10 @@ class HomePage extends StatelessWidget {
        bottomNavigationBar: BottomAppBar(
          child: Row(
            children: [
-             _bottomAction()
+             _bottomAction(FontAwesomeIcons.history),
+             _bottomAction(FontAwesomeIcons.chartPie),
+             _bottomAction(FontAwesomeIcons.wallet),
+             _bottomAction(Icons.settings),
            ],
          ),
        ),
