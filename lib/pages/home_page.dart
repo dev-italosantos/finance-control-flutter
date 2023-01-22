@@ -30,12 +30,15 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       bottomNavigationBar: BottomAppBar(
+        notchMargin: 8.0,
+        shape: const CircularNotchedRectangle(),
         child: Row(
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _bottomAction(FontAwesomeIcons.history),
             _bottomAction(FontAwesomeIcons.chartPie),
+            const SizedBox(width: 48.0),
             _bottomAction(FontAwesomeIcons.wallet),
             _bottomAction(Icons.settings),
           ],
@@ -43,7 +46,7 @@ class HomePage extends StatelessWidget {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
         onPressed: () {},
       ),
     );
