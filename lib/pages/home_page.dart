@@ -18,7 +18,10 @@ class HomePage extends StatelessWidget {
 
   Widget _bottomAction(IconData icon) {
     return InkWell(
-      child: Icon(icon),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Icon(icon),
+      ),
       onTap: () {},
     );
   }
@@ -26,16 +29,23 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-       bottomNavigationBar: BottomAppBar(
-         child: Row(
-           children: [
-             _bottomAction(FontAwesomeIcons.history),
-             _bottomAction(FontAwesomeIcons.chartPie),
-             _bottomAction(FontAwesomeIcons.wallet),
-             _bottomAction(Icons.settings),
-           ],
-         ),
-       ),
+      bottomNavigationBar: BottomAppBar(
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _bottomAction(FontAwesomeIcons.history),
+            _bottomAction(FontAwesomeIcons.chartPie),
+            _bottomAction(FontAwesomeIcons.wallet),
+            _bottomAction(Icons.settings),
+          ],
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () {},
+      ),
     );
   }
 }
