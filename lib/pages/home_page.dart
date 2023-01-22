@@ -49,6 +49,30 @@ class HomePage extends StatelessWidget {
         child: const Icon(Icons.add),
         onPressed: () {},
       ),
+      body: _body(),
     );
+  }
+  Widget _body() {
+    return SafeArea(child: Column(
+      children: [
+        _selector(),
+        _expenses(),
+        _graph(),
+        _list(),
+      ],
+    ));
+  }
+
+  Widget _selector() {
+    return Container();
+  }
+  Widget _graph() {
+    return Container();
+  }
+  Widget _list() {
+    return Container();
+  }
+  Widget _expenses() {
+    return Container();
   }
 }
