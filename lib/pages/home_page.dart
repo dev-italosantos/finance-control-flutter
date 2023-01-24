@@ -52,27 +52,52 @@ class HomePage extends StatelessWidget {
       body: _body(),
     );
   }
+
   Widget _body() {
-    return SafeArea(child: Column(
-      children: [
-        _selector(),
-        _expenses(),
-        _graph(),
-        _list(),
-      ],
-    ));
+    return SafeArea(
+      child: Column(
+        children: [
+          _selector(),
+          _expenses(),
+          _graph(),
+          _list(),
+        ],
+      ),
+    );
   }
 
   Widget _selector() {
     return Container();
   }
+
   Widget _graph() {
     return Container();
   }
+
   Widget _list() {
     return Container();
   }
+
   Widget _expenses() {
-    return Container();
+    return Column(
+      children: const [
+        Text(
+          "\$10250,55",
+          style: TextStyle(
+            fontSize: 40.0,
+            fontWeight: FontWeight.bold,
+            color: Colors.blueGrey,
+          ),
+        ),
+        Text(
+          "Total expenses",
+          style: TextStyle(
+            fontSize: 16.0,
+            fontWeight: FontWeight.bold,
+            color: Colors.blueGrey,
+          ),
+        )
+      ],
+    );
   }
 }
