@@ -36,7 +36,7 @@ class HomePage extends StatelessWidget {
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _bottomAction(FontAwesomeIcons.history),
+            _bottomAction(FontAwesomeIcons.clockRotateLeft),
             _bottomAction(FontAwesomeIcons.chartPie),
             const SizedBox(width: 48.0),
             _bottomAction(FontAwesomeIcons.wallet),
@@ -46,6 +46,7 @@ class HomePage extends StatelessWidget {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color.fromRGBO(150, 150, 150, 1.0),
         child: const Icon(Icons.add),
         onPressed: () {},
       ),
