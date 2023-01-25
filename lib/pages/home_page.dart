@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_investment_control/widgets/graph_widget.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class HomePage extends StatelessWidget {
@@ -72,7 +73,7 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _graph() {
-    return Container();
+    return const GraphWidget();
   }
 
   Widget _list() {
