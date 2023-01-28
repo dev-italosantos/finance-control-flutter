@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_investment_control/repositories/active_repository.dart';
 import 'package:flutter_investment_control/widgets/graph_widget.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -29,6 +30,7 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tabela = ActiveRepository.tabela;
     return Scaffold(
       bottomNavigationBar: BottomAppBar(
         notchMargin: 8.0,
@@ -51,7 +53,18 @@ class HomePage extends StatelessWidget {
         child: const Icon(Icons.add),
         onPressed: () {},
       ),
-      body: _body(),
+      body: ListView.separated(
+        itemBuilder: (BuildContext context, int active) {
+          return ListTile(
+            leading: Image.asset(tabela[active].icon),
+            title: Text(tabela[active].name),
+            trailing: Text(tabela[active].price.toString()),
+          );
+        },
+        padding: const EdgeInsets.all(16.0),
+        separatorBuilder: (_, __) => const Divider(),
+        itemCount: tabela.length,
+      ),
     );
   }
 
@@ -61,8 +74,8 @@ class HomePage extends StatelessWidget {
         children: [
           _selector(),
           _expenses(),
-          _graph(),
-          _list(),
+          // _graph(),
+          // _list(),
         ],
       ),
     );
@@ -73,12 +86,27 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _graph() {
-    return const GraphWidget();
+    return const SizedBox(
+      height: 250.0,
+      child: GraphWidget(),
+    );
   }
 
-  Widget _list() {
-    return Container();
-  }
+  // Widget _list() {
+  //   final tabela = ActiveRepository.tabela;
+  //   return ListView.separated(
+  //     itemBuilder: (BuildContext context, int active) {
+  //       return ListTile(
+  //         leading: Image.asset(tabela[active].icon),
+  //         title: Text(tabela[active].name),
+  //         trailing: Text(tabela[active].price.toString()),
+  //       );
+  //     },
+  //     padding: const EdgeInsets.all(16.0),
+  //     separatorBuilder: (_, __) => const Divider(),
+  //     itemCount: tabela.length,
+  //   );
+  // }
 
   Widget _expenses() {
     return Column(
