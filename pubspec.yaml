@@ -41,6 +41,7 @@ dependencies:
   syncfusion_flutter_charts: ^20.4.44
   syncfusion_flutter_core: ^20.4.44
   http: ^0.13.5
+  intl:
 
 dev_dependencies:
   flutter_test:
