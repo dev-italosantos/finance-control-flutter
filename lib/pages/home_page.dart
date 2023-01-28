@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_investment_control/repositories/active_repository.dart';
 import 'package:flutter_investment_control/widgets/graph_widget.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -31,6 +32,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabela = ActiveRepository.tabela;
+    NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
     return Scaffold(
       bottomNavigationBar: BottomAppBar(
         notchMargin: 8.0,
@@ -68,7 +70,7 @@ class HomePage extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            trailing: Text(tabela[active].price.toString()),
+            trailing: Text(real.format(tabela[active].price)),
           );
         },
         padding: const EdgeInsets.all(16.0),
