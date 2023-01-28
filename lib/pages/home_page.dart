@@ -56,8 +56,18 @@ class HomePage extends StatelessWidget {
       body: ListView.separated(
         itemBuilder: (BuildContext context, int active) {
           return ListTile(
-            leading: Image.asset(tabela[active].icon),
-            title: Text(tabela[active].name),
+            leading: SizedBox(
+              width: 40.0,
+              child: Image.asset(tabela[active].icon),
+            ),
+            title: Text(
+              tabela[active].name,
+              style: const TextStyle(
+                color: Colors.black54,
+                fontSize: 17.0,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
             trailing: Text(tabela[active].price.toString()),
           );
         },
