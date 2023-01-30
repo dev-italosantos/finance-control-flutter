@@ -58,6 +58,11 @@ class HomePage extends StatelessWidget {
       body: ListView.separated(
         itemBuilder: (BuildContext context, int active) {
           return ListTile(
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(
+                Radius.circular(12),
+              ),
+            ),
             leading: SizedBox(
               width: 40.0,
               child: Image.asset(tabela[active].icon),
@@ -70,7 +75,14 @@ class HomePage extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            trailing: Text(real.format(tabela[active].price)),
+            trailing: Text(
+              real.format(tabela[active].price),
+            ),
+            selected: false,
+            selectedTileColor: Colors.white30,
+            onLongPress: () {
+              print("Test");
+            },
           );
         },
         padding: const EdgeInsets.all(16.0),
