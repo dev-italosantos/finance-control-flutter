@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_investment_control/models/active_model.dart';
 import 'package:flutter_investment_control/repositories/active_repository.dart';
 import 'package:flutter_investment_control/widgets/graph_widget.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -32,6 +33,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabela = ActiveRepository.tabela;
+    List<Active> selecionadas = [];
     NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
     return Scaffold(
       bottomNavigationBar: BottomAppBar(
@@ -81,7 +83,9 @@ class HomePage extends StatelessWidget {
             selected: false,
             selectedTileColor: Colors.white30,
             onLongPress: () {
-              print("Test");
+              (selecionadas.contains(tabela[active]))
+              ? selecionadas.remove(tabela[active])
+              : selecionadas.add(tabela[active]);
             },
           );
         },
