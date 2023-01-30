@@ -5,21 +5,15 @@ import 'package:flutter_investment_control/widgets/graph_widget.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
-  // Future<String> getData() async {
-  //   var url = Uri.https('https://api.b3.com.br/b3api/api/v1/ativos', '');
-  //   var response = await http.get(url);
-  //
-  //   return response.body;
-  // }
-  //
-  // void mainTest() async {
-  //   var data = await getData();
-  //   print(data);
-  // }
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
 
+class _HomePageState extends State<HomePage> {
+  // Future<String> getData() async {
   Widget _bottomAction(IconData icon) {
     return InkWell(
       child: Padding(
@@ -121,21 +115,6 @@ class HomePage extends StatelessWidget {
   }
 
   // Widget _list() {
-  //   final tabela = ActiveRepository.tabela;
-  //   return ListView.separated(
-  //     itemBuilder: (BuildContext context, int active) {
-  //       return ListTile(
-  //         leading: Image.asset(tabela[active].icon),
-  //         title: Text(tabela[active].name),
-  //         trailing: Text(tabela[active].price.toString()),
-  //       );
-  //     },
-  //     padding: const EdgeInsets.all(16.0),
-  //     separatorBuilder: (_, __) => const Divider(),
-  //     itemCount: tabela.length,
-  //   );
-  // }
-
   Widget _expenses() {
     return Column(
       children: const [
