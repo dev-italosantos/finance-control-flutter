@@ -74,12 +74,14 @@ class _HomePageState extends State<HomePage> {
             trailing: Text(
               real.format(tabela[active].price),
             ),
-            selected: false,
+            selected: selecionadas.contains(tabela[active]),
             selectedTileColor: Colors.white30,
             onLongPress: () {
-              (selecionadas.contains(tabela[active]))
-              ? selecionadas.remove(tabela[active])
-              : selecionadas.add(tabela[active]);
+              setState(() {
+                (selecionadas.contains(tabela[active]))
+                    ? selecionadas.remove(tabela[active])
+                    : selecionadas.add(tabela[active]);
+              });
             },
           );
         },
