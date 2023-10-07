@@ -49,7 +49,16 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color.fromRGBO(150, 150, 150, 1.0),
         child: const Icon(Icons.add),
-        onPressed: () {},
+        onPressed: () {
+          Future.delayed(const Duration(seconds: 3)).then(
+                (value) => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => _graph(),
+              ),
+            ),
+          );
+        },
       ),
       body: ListView.separated(
         itemBuilder: (BuildContext context, int active) {
@@ -98,7 +107,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           _selector(),
           _expenses(),
-          // _graph(),
+          _graph(),
           // _list(),
         ],
       ),
