@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
-import 'package:intl/intl.dart';
+
 
 class GraphWidget extends StatefulWidget {
   const GraphWidget({Key? key}) : super(key: key);
@@ -70,7 +70,7 @@ class _GraphWidgetState extends State<GraphWidget> {
                     markerSettings: const MarkerSettings(
                         isVisible: true, shape: DataMarkerType.diamond),
                     pointColorMapper: (ChartData data, _) => data.color,
-                    xValueMapper: (ChartData data, _) => data.x,
+                    xValueMapper: (ChartData data, _,) => data.x,
                     yValueMapper: (ChartData data, _) => data.y1),
                 StackedLine100Series<ChartData, DateTime>(
                     dataSource: chartData1,
