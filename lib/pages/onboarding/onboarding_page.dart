@@ -11,8 +11,14 @@ class Onboarding extends StatelessWidget {
         children: [
           Expanded(
             flex: 2,
-            child: Container(
-              color: const Color(0xFFEEF8F7),
+            child: Image.asset('assets/images/brazuca_browsing.png'),
+          ),
+          const Text(
+            "spend smarter",
+            style: TextStyle(
+              fontSize: 36.0,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF438883),
             ),
           ),
           Expanded(
