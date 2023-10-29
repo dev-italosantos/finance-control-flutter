@@ -42,6 +42,7 @@ dependencies:
   syncfusion_flutter_core: ^20.4.44
   http: ^0.13.5
   intl:
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:

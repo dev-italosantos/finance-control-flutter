@@ -1,4 +1,24 @@
-import "package:flutter/material.dart";
+import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+
+void main() => runApp(const MyApp());
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key});
+  static const String _title = 'Minha Carteira de Ativos';
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: _title,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const AssetList(),
+    );
+  }
+}
 
 class AssetList extends StatefulWidget {
   const AssetList({Key? key});
@@ -23,6 +43,24 @@ class Asset {
   double get totalInvested => averagePrice * quantity;
   double get profitability =>
       (currentPrice - averagePrice) / averagePrice * 100;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'ticker': ticker,
+      'averagePrice': averagePrice,
+      'currentPrice': currentPrice,
+      'quantity': quantity,
+    };
+  }
+
+  factory Asset.fromJson(Map<String, dynamic> json) {
+    return Asset(
+      ticker: json['ticker'],
+      averagePrice: json['averagePrice'],
+      currentPrice: json['currentPrice'],
+      quantity: json['quantity'],
+    );
+  }
 }
 
 class _AssetListState extends State<AssetList> {
@@ -32,6 +70,109 @@ class _AssetListState extends State<AssetList> {
   final TextEditingController averagePriceController = TextEditingController();
   final TextEditingController currentPriceController = TextEditingController();
   final TextEditingController quantityController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAssets();
+  }
+
+  Future<void> _loadAssets() async {
+    final prefs = await SharedPreferences.getInstance();
+    final assetList = prefs.getStringList('assets');
+
+    if (assetList != null) {
+      setState(() {
+        assets.clear();
+        assets
+            .addAll(assetList.map((json) => Asset.fromJson(jsonDecode(json))));
+      });
+    }
+  }
+
+  Future<void> _saveAssets() async {
+    final prefs = await SharedPreferences.getInstance();
+    final assetList =
+        assets.map((asset) => jsonEncode(asset.toJson())).toList();
+    await prefs.setStringList('assets', assetList);
+  }
+
+  void _addAsset(Asset newAsset) {
+    setState(() {
+      assets.add(newAsset);
+    });
+    _saveAssets();
+  }
+
+  void _showAddAssetDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Adicionar Ativo'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              TextField(
+                controller: tickerController,
+                decoration: const InputDecoration(labelText: 'Ticker'),
+              ),
+              TextField(
+                controller: averagePriceController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Preço Médio'),
+              ),
+              TextField(
+                controller: currentPriceController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Preço Atual'),
+              ),
+              TextField(
+                controller: quantityController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Quantidade'),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                final ticker = tickerController.text;
+                final averagePrice =
+                    double.tryParse(averagePriceController.text) ?? 0.0;
+                final currentPrice =
+                    double.tryParse(currentPriceController.text) ?? 0.0;
+                final quantity = int.tryParse(quantityController.text) ?? 0;
+
+                if (ticker.isNotEmpty &&
+                    averagePrice > 0 &&
+                    currentPrice > 0 &&
+                    quantity > 0) {
+                  final newAsset = Asset(
+                    ticker: ticker,
+                    averagePrice: averagePrice,
+                    currentPrice: currentPrice,
+                    quantity: quantity,
+                  );
+
+                  _addAsset(newAsset);
+
+                  Navigator.of(context).pop();
+                }
+              },
+              child: const Text('Adicionar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -130,78 +271,6 @@ class _AssetListState extends State<AssetList> {
         },
         child: const Icon(Icons.add),
       ),
-    );
-  }
-
-  void _showAddAssetDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Adicionar Ativo'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextField(
-                controller: tickerController,
-                decoration: const InputDecoration(labelText: 'Ticker'),
-              ),
-              TextField(
-                controller: averagePriceController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Preço Médio'),
-              ),
-              TextField(
-                controller: currentPriceController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Preço Atual'),
-              ),
-              TextField(
-                controller: quantityController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Quantidade'),
-              ),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () {
-                final ticker = tickerController.text;
-                final averagePrice =
-                    double.tryParse(averagePriceController.text) ?? 0.0;
-                final currentPrice =
-                    double.tryParse(currentPriceController.text) ?? 0.0;
-                final quantity = int.tryParse(quantityController.text) ?? 0;
-
-                if (ticker.isNotEmpty &&
-                    averagePrice > 0 &&
-                    currentPrice > 0 &&
-                    quantity > 0) {
-                  final newAsset = Asset(
-                    ticker: ticker,
-                    averagePrice: averagePrice,
-                    currentPrice: currentPrice,
-                    quantity: quantity,
-                  );
-
-                  setState(() {
-                    assets.add(newAsset);
-                  });
-
-                  Navigator.of(context).pop();
-                }
-              },
-              child: const Text('Adicionar'),
-            ),
-          ],
-        );
-      },
     );
   }
 }
