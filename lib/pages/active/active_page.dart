@@ -41,8 +41,7 @@ class Asset {
   });
 
   double get totalInvested => averagePrice * quantity;
-  double get profitability =>
-      (currentPrice - averagePrice) / averagePrice * 100;
+  double get profitability => (currentPrice - averagePrice) / averagePrice * 100;
 
   Map<String, dynamic> toJson() {
     return {
@@ -61,11 +60,16 @@ class Asset {
       quantity: json['quantity'],
     );
   }
+
+  double get totalVariation {
+    return (currentPrice - averagePrice) * quantity;
+  }
 }
 
 class _AssetListState extends State<AssetList> {
   final List<Asset> assets = [];
 
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController tickerController = TextEditingController();
   final TextEditingController averagePriceController = TextEditingController();
   final TextEditingController currentPriceController = TextEditingController();
@@ -84,16 +88,14 @@ class _AssetListState extends State<AssetList> {
     if (assetList != null) {
       setState(() {
         assets.clear();
-        assets
-            .addAll(assetList.map((json) => Asset.fromJson(jsonDecode(json))));
-      });
+        assets.addAll(assetList.map((json) => Asset.fromJson(jsonDecode(json))));
+        });
     }
   }
 
   Future<void> _saveAssets() async {
     final prefs = await SharedPreferences.getInstance();
-    final assetList =
-        assets.map((asset) => jsonEncode(asset.toJson())).toList();
+    final assetList = assets.map((asset) => jsonEncode(asset.toJson())).toList();
     await prefs.setStringList('assets', assetList);
   }
 
@@ -110,30 +112,57 @@ class _AssetListState extends State<AssetList> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Adicionar Ativo'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextField(
-                controller: tickerController,
-                textCapitalization: TextCapitalization.characters,
-                decoration: const InputDecoration(labelText: 'Ticker'),
-              ),
-              TextField(
-                controller: averagePriceController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(labelText: 'Preço Médio'),
-              ),
-              TextField(
-                controller: currentPriceController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(labelText: 'Preço Atual'),
-              ),
-              TextField(
-                controller: quantityController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(labelText: 'Quantidade'),
-              ),
-            ],
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                TextFormField(
+                  controller: tickerController,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: const InputDecoration(labelText: 'Ticker'),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Por favor, insira um Ticker';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: averagePriceController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(labelText: 'Preço Médio'),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Por favor, insira o Preço Médio';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: currentPriceController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(labelText: 'Preço Atual'),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Por favor, insira o Preço Atual';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: quantityController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(labelText: 'Quantidade'),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Por favor, insira a Quantidade';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
           ),
           actions: <Widget>[
             TextButton(
@@ -144,27 +173,30 @@ class _AssetListState extends State<AssetList> {
             ),
             TextButton(
               onPressed: () {
-                final ticker = tickerController.text.toUpperCase();
-                final averagePrice =
-                    double.tryParse(averagePriceController.text) ?? 0.0;
-                final currentPrice =
-                    double.tryParse(currentPriceController.text) ?? 0.0;
-                final quantity = int.tryParse(quantityController.text) ?? 0;
+                if (_formKey.currentState!.validate()) {
+                  final ticker = tickerController.text.toUpperCase();
+                  final averagePrice = double.tryParse(averagePriceController.text) ?? 0.0;
+                  final currentPrice = double.tryParse(currentPriceController.text) ?? 0.0;
+                  final quantity = int.tryParse(quantityController.text) ?? 0;
 
-                if (ticker.isNotEmpty &&
-                    averagePrice > 0 &&
-                    currentPrice > 0 &&
-                    quantity > 0) {
-                  final newAsset = Asset(
-                    ticker: ticker,
-                    averagePrice: averagePrice,
-                    currentPrice: currentPrice,
-                    quantity: quantity,
-                  );
+                  if (ticker.isNotEmpty && averagePrice > 0 && currentPrice > 0 && quantity > 0) {
+                    final newAsset = Asset(
+                      ticker: ticker,
+                      averagePrice: averagePrice,
+                      currentPrice: currentPrice,
+                      quantity: quantity,
+                    );
 
-                  _addAsset(newAsset);
+                    _addAsset(newAsset);
 
-                  Navigator.of(context).pop();
+                    // Limpe os controladores do formulário
+                    tickerController.clear();
+                    averagePriceController.clear();
+                    currentPriceController.clear();
+                    quantityController.clear();
+
+                    Navigator.of(context).pop();
+                  }
                 }
               },
               child: const Text('Adicionar'),
@@ -175,12 +207,43 @@ class _AssetListState extends State<AssetList> {
     );
   }
 
+  double get totalGainedOrLost {
+    double totalVariation = 0.0;
+    for (final asset in assets) {
+      totalVariation += asset.totalVariation;
+    }
+    return totalVariation;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Minha Carteira de Ativos'),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            const Text(
+              'Minha Carteira de Ativos',
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.white70,
+                fontFamily: 'Monospace',
+              ),
+            ),
+            Text(
+              'Total: R\$ ${totalGainedOrLost.toStringAsFixed(2)}',
+              style: const TextStyle(
+                fontSize: 13,
+                // fontWeight: FontWeight.bold,
+                color: Colors.white70,
+                fontFamily: 'Monospace',
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.black,
       ),
+
       body: ListView.builder(
         itemCount: assets.length,
         itemBuilder: (context, index) {
@@ -203,12 +266,12 @@ class _AssetListState extends State<AssetList> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                          Text(
-                            'R\$ ${asset.totalInvested.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
+                      Text(
+                        'R\$ ${asset.totalInvested.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -255,14 +318,24 @@ class _AssetListState extends State<AssetList> {
                           fontSize: 16,
                         ),
                       ),
-                      Text(
-                        '${asset.profitability.toStringAsFixed(2)}%',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: asset.profitability >= 0
-                              ? Colors.green
-                              : Colors.red,
-                        ),
+                      Row(
+                        children: <Widget>[
+                          Text(
+                            'R\$ ${asset.totalVariation.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: asset.totalVariation >= 0 ? Colors.green : Colors.red,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            '${asset.profitability.toStringAsFixed(2)}%',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: asset.profitability >= 0 ? Colors.green : Colors.red,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
