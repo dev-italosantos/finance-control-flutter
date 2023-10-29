@@ -115,21 +115,22 @@ class _AssetListState extends State<AssetList> {
             children: <Widget>[
               TextField(
                 controller: tickerController,
+                textCapitalization: TextCapitalization.characters,
                 decoration: const InputDecoration(labelText: 'Ticker'),
               ),
               TextField(
                 controller: averagePriceController,
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(labelText: 'Preço Médio'),
               ),
               TextField(
                 controller: currentPriceController,
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(labelText: 'Preço Atual'),
               ),
               TextField(
                 controller: quantityController,
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(labelText: 'Quantidade'),
               ),
             ],
@@ -143,7 +144,7 @@ class _AssetListState extends State<AssetList> {
             ),
             TextButton(
               onPressed: () {
-                final ticker = tickerController.text;
+                final ticker = tickerController.text.toUpperCase();
                 final averagePrice =
                     double.tryParse(averagePriceController.text) ?? 0.0;
                 final currentPrice =
@@ -202,6 +203,12 @@ class _AssetListState extends State<AssetList> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                          Text(
+                            'R\$ ${asset.totalInvested.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                            ),
+                          ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -222,23 +229,23 @@ class _AssetListState extends State<AssetList> {
                       ),
                     ],
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      const Text(
-                        'Valor total investido',
-                        style: TextStyle(
-                          fontSize: 16,
-                        ),
-                      ),
-                      Text(
-                        'R\$ ${asset.totalInvested.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //   children: <Widget>[
+                  //     const Text(
+                  //       'Valor total investido',
+                  //       style: TextStyle(
+                  //         fontSize: 16,
+                  //       ),
+                  //     ),
+                  //     Text(
+                  //       'R\$ ${asset.totalInvested.toStringAsFixed(2)}',
+                  //       style: const TextStyle(
+                  //         fontSize: 16,
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
