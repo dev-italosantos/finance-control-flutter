@@ -229,23 +229,23 @@ class _AssetListState extends State<AssetList> {
                       ),
                     ],
                   ),
-                  // Row(
-                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  //   children: <Widget>[
-                  //     const Text(
-                  //       'Valor total investido',
-                  //       style: TextStyle(
-                  //         fontSize: 16,
-                  //       ),
-                  //     ),
-                  //     Text(
-                  //       'R\$ ${asset.totalInvested.toStringAsFixed(2)}',
-                  //       style: const TextStyle(
-                  //         fontSize: 16,
-                  //       ),
-                  //     ),
-                  //   ],
-                  // ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      const Text(
+                        'Preço Médio',
+                        style: TextStyle(
+                          fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        'R\$ ${asset.averagePrice.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
