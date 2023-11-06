@@ -218,132 +218,177 @@ class _AssetListState extends State<AssetList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // appBar: AppBar(
+      //   title: Row(
+      //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      //     children: <Widget>[
+      //       const Text(
+      //         'Minha Carteira de Ativos',
+      //         style: TextStyle(
+      //           fontSize: 15,
+      //           color: Colors.white70,
+      //           fontFamily: 'Monospace',
+      //         ),
+      //       ),
+      //       Text(
+      //         'Total: R\$ ${totalGainedOrLost.toStringAsFixed(2)}',
+      //         style: const TextStyle(
+      //           fontSize: 13,
+      //           // fontWeight: FontWeight.bold,
+      //           color: Colors.white70,
+      //           fontFamily: 'Monospace',
+      //         ),
+      //       ),
+      //     ],
+      //   ),
+      //   backgroundColor: Colors.black,
+      // ),
+
       appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            const Text(
-              'Minha Carteira de Ativos',
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.white70,
-                fontFamily: 'Monospace',
-              ),
-            ),
-            Text(
-              'Total: R\$ ${totalGainedOrLost.toStringAsFixed(2)}',
-              style: const TextStyle(
-                fontSize: 13,
-                // fontWeight: FontWeight.bold,
-                color: Colors.white70,
-                fontFamily: 'Monospace',
-              ),
-            ),
-          ],
+        title: const Text(
+          'Minha Carteira de Ativos',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.white70,
+            fontFamily: 'Monospace',
+          ),
         ),
         backgroundColor: Colors.black,
       ),
-
-      body: ListView.builder(
-        itemCount: assets.length,
-        itemBuilder: (context, index) {
-          final asset = assets[index];
-          return Card(
-            elevation: 4,
-            margin: const EdgeInsets.all(12),
+      body: Column(
+        children: [
+          Card(
+            margin: const EdgeInsets.all(16),
+            color: Colors.black,
             child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Text(
-                        '${asset.ticker} - ${asset.quantity} Cotas',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'R\$ ${asset.totalInvested.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
+                  const Text(
+                    'Total Gained/Lost:',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white70,
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      const Text(
-                        'Última Cotação',
-                        style: TextStyle(
-                          fontSize: 16,
-                        ),
-                      ),
-                      Text(
-                        'R\$ ${asset.currentPrice.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      const Text(
-                        'Preço Médio',
-                        style: TextStyle(
-                          fontSize: 16,
-                        ),
-                      ),
-                      Text(
-                        'R\$ ${asset.averagePrice.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      const Text(
-                        'Rentabilidade',
-                        style: TextStyle(
-                          fontSize: 16,
-                        ),
-                      ),
-                      Row(
-                        children: <Widget>[
-                          Text(
-                            'R\$ ${asset.totalVariation.toStringAsFixed(2)}',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: asset.totalVariation >= 0 ? Colors.green : Colors.red,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            '${asset.profitability.toStringAsFixed(2)}%',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: asset.profitability >= 0 ? Colors.green : Colors.red,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  Text(
+                    'R\$ ${totalGainedOrLost.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white70,
+                      fontFamily: 'Monospace',
+                    ),
                   ),
                 ],
               ),
             ),
-          );
-        },
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: assets.length,
+              itemBuilder: (context, index) {
+                final asset = assets[index];
+                return Card(
+                  elevation: 4,
+                  margin: const EdgeInsets.all(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Text(
+                              '${asset.ticker} - ${asset.quantity} Cotas',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'R\$ ${asset.totalInvested.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            const Text(
+                              'Última Cotação',
+                              style: TextStyle(
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              'R\$ ${asset.currentPrice.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            const Text(
+                              'Preço Médio',
+                              style: TextStyle(
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              'R\$ ${asset.averagePrice.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            const Text(
+                              'Rentabilidade',
+                              style: TextStyle(
+                                fontSize: 16,
+                              ),
+                            ),
+                            Row(
+                              children: <Widget>[
+                                Text(
+                                  'R\$ ${asset.totalVariation.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: asset.totalVariation >= 0 ? Colors.green : Colors.red,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  '${asset.profitability.toStringAsFixed(2)}%',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: asset.profitability >= 0 ? Colors.green : Colors.red,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
