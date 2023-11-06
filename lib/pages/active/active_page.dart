@@ -218,32 +218,6 @@ class _AssetListState extends State<AssetList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: Row(
-      //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      //     children: <Widget>[
-      //       const Text(
-      //         'Minha Carteira de Ativos',
-      //         style: TextStyle(
-      //           fontSize: 15,
-      //           color: Colors.white70,
-      //           fontFamily: 'Monospace',
-      //         ),
-      //       ),
-      //       Text(
-      //         'Total: R\$ ${totalGainedOrLost.toStringAsFixed(2)}',
-      //         style: const TextStyle(
-      //           fontSize: 13,
-      //           // fontWeight: FontWeight.bold,
-      //           color: Colors.white70,
-      //           fontFamily: 'Monospace',
-      //         ),
-      //       ),
-      //     ],
-      //   ),
-      //   backgroundColor: Colors.black,
-      // ),
-
       appBar: AppBar(
         title: const Text(
           'Minha Carteira de Ativos',
@@ -349,6 +323,23 @@ class _AssetListState extends State<AssetList> {
                                 fontSize: 16,
                               ),
                             ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Custo Médio',
+                              style: TextStyle(
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              'R\$ ${(asset.averagePrice * asset.quantity).toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontSize: 16,
+                              ),
+                            )
                           ],
                         ),
                         Row(
