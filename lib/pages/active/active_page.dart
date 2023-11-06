@@ -233,7 +233,7 @@ class _AssetListState extends State<AssetList> {
         children: [
           Card(
             margin: const EdgeInsets.all(16),
-            color: Colors.black,
+            color: Colors.grey[900],
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -243,7 +243,7 @@ class _AssetListState extends State<AssetList> {
                     'Total Gained/Lost:',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white70,
+                      color: Colors.grey,
                     ),
                   ),
                   Text(
@@ -251,7 +251,7 @@ class _AssetListState extends State<AssetList> {
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white70,
+                      color: Colors.grey,
                       fontFamily: 'Monospace',
                     ),
                   ),
@@ -266,7 +266,7 @@ class _AssetListState extends State<AssetList> {
                 final asset = assets[index];
                 return Card(
                   elevation: 4,
-                  margin: EdgeInsets.all(12),
+                  margin: const EdgeInsets.all(12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -276,7 +276,7 @@ class _AssetListState extends State<AssetList> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: ListTile(
-                      contentPadding: EdgeInsets.all(16),
+                      contentPadding: const EdgeInsets.all(16),
                       title: Text(
                         '${asset.ticker} - ${asset.quantity} Cotas',
                         style: const TextStyle(
