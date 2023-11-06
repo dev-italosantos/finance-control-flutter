@@ -40,7 +40,7 @@ class Asset {
     required this.quantity,
   });
 
-  double get totalInvested => averagePrice * quantity;
+  double get totalAmount => currentPrice * quantity;
   double get profitability => (currentPrice - averagePrice) / averagePrice * 100;
 
   Map<String, dynamic> toJson() {
@@ -309,7 +309,7 @@ class _AssetListState extends State<AssetList> {
                               ),
                             ),
                             Text(
-                              'R\$ ${asset.totalInvested.toStringAsFixed(2)}',
+                              'R\$ ${asset.totalAmount.toStringAsFixed(2)}',
                               style: const TextStyle(
                                 fontSize: 16,
                               ),
