@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_investment_control/models/active_model.dart';
+import 'package:flutter_investment_control/pages/active/active_page.dart';
 import 'package:flutter_investment_control/repositories/active_repository.dart';
 import 'package:flutter_investment_control/widgets/graph_widget.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -29,7 +30,18 @@ class _HomePageState extends State<HomePage> {
     final tabela = ActiveRepository.tabela;
     List<Active> selecionadas = [];
     NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
+    // return const AssetList();
     return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Ativos de Investimentos',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.grey,
+          ),
+        ),
+        backgroundColor: Colors.black,
+      ),
       bottomNavigationBar: BottomAppBar(
         notchMargin: 8.0,
         shape: const CircularNotchedRectangle(),
@@ -50,14 +62,14 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: const Color.fromRGBO(150, 150, 150, 1.0),
         child: const Icon(Icons.add),
         onPressed: () {
-          Future.delayed(const Duration(seconds: 3)).then(
-                (value) => Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => _graph(),
-              ),
-            ),
-          );
+          // Future.delayed(const Duration(seconds: 3)).then(
+          //       (value) => Navigator.pushReplacement(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (context) => _graph(),
+          //     ),
+          //   ),
+          // );
         },
       ),
       body: ListView.separated(
@@ -99,6 +111,7 @@ class _HomePageState extends State<HomePage> {
         itemCount: tabela.length,
       ),
     );
+    ;
   }
 
   Widget _body() {

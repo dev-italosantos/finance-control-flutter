@@ -1,5 +1,5 @@
+import 'package:flutter_investment_control/core/app_icons.dart';
 import 'package:flutter_investment_control/models/active_model.dart';
-import '../core/app_icons.dart';
 
 class ActiveRepository {
   static List<Active> tabela = [
