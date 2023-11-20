@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_investment_control/models/active_model.dart';
+import 'package:flutter_investment_control/pages/active/active_page.dart';
 import 'package:flutter_investment_control/repositories/active_repository.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
@@ -19,7 +20,11 @@ class _HomePageState extends State<HomePage> {
   appBarDynamics() {
     if (selecionadas.isEmpty) {
         return AppBar(
-          title: const Text('Ativos de Investimentos'),
+          title: const Text('Ativos de Investimentos',
+            style: TextStyle(
+              fontSize: 16,
+            ),
+          ),
           backgroundColor: Colors.black,
         );
     } else {
@@ -118,7 +123,16 @@ class _HomePageState extends State<HomePage> {
         padding: const EdgeInsets.all(8.0),
         child: Icon(icon),
       ),
-      onTap: () {},
+      onTap: () {
+        Future.delayed(const Duration(seconds: 1)).then(
+              (value) => Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AssetList(),
+            ),
+          ),
+        );
+      },
     );
   }
 }

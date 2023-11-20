@@ -1,25 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_investment_control/pages/home_page.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-
-// void main() => runApp(const ActivePage());
-//
-// class ActivePage extends StatelessWidget {
-//   const ActivePage({Key? key});
-//   static const String _title = 'Minha Carteira de Ativos';
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: _title,
-//       theme: ThemeData(
-//         primarySwatch: Colors.blue,
-//       ),
-//       home: const AssetList(),
-//     );
-//   }
-// }
 
 class AssetList extends StatefulWidget {
   const AssetList({Key? key});
@@ -241,12 +224,23 @@ class _AssetListState extends State<AssetList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Future.delayed(const Duration(seconds: 1)).then(
+                  (value) => Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HomePage(),
+                ),
+              ),
+            );
+          },
+        ),
         title: const Text(
           'Minha Carteira de Ativos',
           style: TextStyle(
             fontSize: 16,
-            color: Colors.grey,
-            fontFamily: 'Monospace',
           ),
         ),
         backgroundColor: Colors.black,
