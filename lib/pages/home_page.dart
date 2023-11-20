@@ -33,6 +33,7 @@ class _HomePageState extends State<HomePage> {
             });
           },
         ),
+        title: Text('${selecionadas.length} selecionadas'),
       );
     }
   }
