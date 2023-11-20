@@ -22,6 +22,15 @@ class _HomePageState extends State<HomePage> {
           title: const Text('Ativos de Investimentos'),
           backgroundColor: Colors.black,
         );
+    } else {
+      return AppBar(
+        backgroundColor: Colors.black,
+        leading:  IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+          },
+        ),
+      );
     }
   }
 
