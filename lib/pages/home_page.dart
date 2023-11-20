@@ -15,21 +15,22 @@ class _HomePageState extends State<HomePage> {
   List<Active> selecionadas = [];
   NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
 
+
+  appBarDynamics() {
+    if (selecionadas.isEmpty) {
+        return AppBar(
+          title: const Text('Ativos de Investimentos'),
+          backgroundColor: Colors.black,
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final tabela = ActiveRepository.tabela;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Ativos de Investimentos',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey,
-          ),
-        ),
-        backgroundColor: Colors.black,
-      ),
+      appBar: appBarDynamics(),
       bottomNavigationBar: BottomAppBar(
         notchMargin: 8.0,
         shape: const CircularNotchedRectangle(),
