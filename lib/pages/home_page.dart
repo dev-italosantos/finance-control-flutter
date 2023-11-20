@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_investment_control/models/active_model.dart';
+import 'package:flutter_investment_control/pages/active/active_page.dart';
 import 'package:flutter_investment_control/repositories/active_repository.dart';
-import 'package:flutter_investment_control/widgets/graph_widget.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
@@ -13,23 +13,42 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Future<String> getData() async {
-  Widget _bottomAction(IconData icon) {
-    return InkWell(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Icon(icon),
-      ),
-      onTap: () {},
-    );
+  List<Active> selecionadas = [];
+  NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
+
+
+  appBarDynamics() {
+    if (selecionadas.isEmpty) {
+        return AppBar(
+          title: const Text('Ativos de Investimentos',
+            style: TextStyle(
+              fontSize: 16,
+            ),
+          ),
+          backgroundColor: Colors.black,
+        );
+    } else {
+      return AppBar(
+        backgroundColor: Colors.black,
+        leading:  IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            setState(() {
+              selecionadas = [];
+            });
+          },
+        ),
+        title: Text('${selecionadas.length} selecionadas'),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final tabela = ActiveRepository.tabela;
-    List<Active> selecionadas = [];
-    NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
+
     return Scaffold(
+      appBar: appBarDynamics(),
       bottomNavigationBar: BottomAppBar(
         notchMargin: 8.0,
         shape: const CircularNotchedRectangle(),
@@ -49,26 +68,23 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color.fromRGBO(150, 150, 150, 1.0),
         child: const Icon(Icons.add),
-        onPressed: () {
-          Future.delayed(const Duration(seconds: 3)).then(
-                (value) => Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => _graph(),
-              ),
-            ),
-          );
-        },
+        onPressed: () {},
       ),
       body: ListView.separated(
         itemBuilder: (BuildContext context, int active) {
+          bool isSelected = selecionadas.contains(tabela[active]);
+
           return ListTile(
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.all(
                 Radius.circular(12),
               ),
             ),
-            leading: SizedBox(
+            leading: isSelected
+                ? const CircleAvatar(
+              child: Icon(Icons.check),
+            )
+                : SizedBox(
               width: 40.0,
               child: Image.asset(tabela[active].icon),
             ),
@@ -83,11 +99,11 @@ class _HomePageState extends State<HomePage> {
             trailing: Text(
               real.format(tabela[active].price),
             ),
-            selected: selecionadas.contains(tabela[active]),
-            selectedTileColor: Colors.white30,
+            selected: isSelected,
+            tileColor: isSelected ? Colors.red : null,
             onLongPress: () {
               setState(() {
-                (selecionadas.contains(tabela[active]))
+                isSelected
                     ? selecionadas.remove(tabela[active])
                     : selecionadas.add(tabela[active]);
               });
@@ -101,51 +117,22 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _body() {
-    return SafeArea(
-      child: Column(
-        children: [
-          _selector(),
-          _expenses(),
-          _graph(),
-          // _list(),
-        ],
+  Widget _bottomAction(IconData icon) {
+    return InkWell(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Icon(icon),
       ),
-    );
-  }
-
-  Widget _selector() {
-    return Container();
-  }
-
-  Widget _graph() {
-    return const SizedBox(
-      height: 250.0,
-      child: GraphWidget(),
-    );
-  }
-
-  // Widget _list() {
-  Widget _expenses() {
-    return Column(
-      children: const [
-        Text(
-          "\$10250,55",
-          style: TextStyle(
-            fontSize: 40.0,
-            fontWeight: FontWeight.bold,
-            color: Colors.blueGrey,
+      onTap: () {
+        Future.delayed(const Duration(seconds: 1)).then(
+              (value) => Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AssetList(),
+            ),
           ),
-        ),
-        Text(
-          "Total expenses",
-          style: TextStyle(
-            fontSize: 16.0,
-            fontWeight: FontWeight.bold,
-            color: Colors.blueGrey,
-          ),
-        )
-      ],
+        );
+      },
     );
   }
 }

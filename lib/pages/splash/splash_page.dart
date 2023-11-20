@@ -6,7 +6,7 @@ class SplashPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Future.delayed(const Duration(seconds: 3)).then(
+    Future.delayed(const Duration(seconds: 2)).then(
       (value) => Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -21,15 +21,15 @@ class SplashPage extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF69F0AE), Color(0xFF00E676)],
+            colors: [Color(0xFF000000), Color(0xFF121212)]
           ),
         ),
         child: const Text(
           "worthy",
           style: TextStyle(
-            fontSize: 50.0,
+            fontSize: 40.0,
             fontWeight: FontWeight.w700,
-            color: Colors.white,
+            color: Colors.grey,
           ),
         ),
       ),

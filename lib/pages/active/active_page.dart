@@ -1,24 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_investment_control/pages/home_page.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-
-void main() => runApp(const MyApp());
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key});
-  static const String _title = 'Minha Carteira de Ativos';
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: _title,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const AssetList(),
-    );
-  }
-}
 
 class AssetList extends StatefulWidget {
   const AssetList({Key? key});
@@ -41,7 +25,8 @@ class Asset {
   });
 
   double get totalAmount => currentPrice * quantity;
-  double get profitability => (currentPrice - averagePrice) / averagePrice * 100;
+  double get profitability =>
+      (currentPrice - averagePrice) / averagePrice * 100;
 
   Map<String, dynamic> toJson() {
     return {
@@ -88,14 +73,16 @@ class _AssetListState extends State<AssetList> {
     if (assetList != null) {
       setState(() {
         assets.clear();
-        assets.addAll(assetList.map((json) => Asset.fromJson(jsonDecode(json))));
-        });
+        assets
+            .addAll(assetList.map((json) => Asset.fromJson(jsonDecode(json))));
+      });
     }
   }
 
   Future<void> _saveAssets() async {
     final prefs = await SharedPreferences.getInstance();
-    final assetList = assets.map((asset) => jsonEncode(asset.toJson())).toList();
+    final assetList =
+        assets.map((asset) => jsonEncode(asset.toJson())).toList();
     await prefs.setStringList('assets', assetList);
   }
 
@@ -130,7 +117,8 @@ class _AssetListState extends State<AssetList> {
                 ),
                 TextFormField(
                   controller: averagePriceController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(labelText: 'Preço Médio'),
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -141,7 +129,8 @@ class _AssetListState extends State<AssetList> {
                 ),
                 TextFormField(
                   controller: currentPriceController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(labelText: 'Preço Atual'),
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -152,7 +141,8 @@ class _AssetListState extends State<AssetList> {
                 ),
                 TextFormField(
                   controller: quantityController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(labelText: 'Quantidade'),
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -175,11 +165,16 @@ class _AssetListState extends State<AssetList> {
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
                   final ticker = tickerController.text.toUpperCase();
-                  final averagePrice = double.tryParse(averagePriceController.text) ?? 0.0;
-                  final currentPrice = double.tryParse(currentPriceController.text) ?? 0.0;
+                  final averagePrice =
+                      double.tryParse(averagePriceController.text) ?? 0.0;
+                  final currentPrice =
+                      double.tryParse(currentPriceController.text) ?? 0.0;
                   final quantity = int.tryParse(quantityController.text) ?? 0;
 
-                  if (ticker.isNotEmpty && averagePrice > 0 && currentPrice > 0 && quantity > 0) {
+                  if (ticker.isNotEmpty &&
+                      averagePrice > 0 &&
+                      currentPrice > 0 &&
+                      quantity > 0) {
                     final newAsset = Asset(
                       ticker: ticker,
                       averagePrice: averagePrice,
@@ -215,16 +210,37 @@ class _AssetListState extends State<AssetList> {
     return totalVariation;
   }
 
+  Widget _bottomAction(IconData icon) {
+    return InkWell(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Icon(icon),
+      ),
+      onTap: () {},
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Future.delayed(const Duration(seconds: 1)).then(
+                  (value) => Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HomePage(),
+                ),
+              ),
+            );
+          },
+        ),
         title: const Text(
           'Minha Carteira de Ativos',
           style: TextStyle(
             fontSize: 16,
-            color: Colors.white70,
-            fontFamily: 'Monospace',
           ),
         ),
         backgroundColor: Colors.black,
@@ -277,13 +293,30 @@ class _AssetListState extends State<AssetList> {
                     ),
                     child: ListTile(
                       contentPadding: const EdgeInsets.all(16),
-                      title: Text(
-                        '${asset.ticker} - ${asset.quantity} Cotas',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white, // Cor do texto
-                        ),
+                      title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '${asset.ticker} - ${asset.quantity} Cotas',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white, // Cor do texto
+                                ),
+                              ),
+                              Text(
+                                'R\$ ${asset.totalAmount.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
                       ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -365,7 +398,9 @@ class _AssetListState extends State<AssetList> {
                                     '${asset.profitability.toStringAsFixed(2)}%',
                                     style: TextStyle(
                                       fontSize: 16,
-                                      color: asset.profitability >= 0 ? Colors.green : Colors.red,
+                                      color: asset.profitability >= 0
+                                          ? Colors.green
+                                          : Colors.red,
                                     ),
                                   ),
                                   const SizedBox(width: 10),
@@ -373,11 +408,11 @@ class _AssetListState extends State<AssetList> {
                                     'R\$ ${asset.totalVariation.toStringAsFixed(2)}',
                                     style: TextStyle(
                                       fontSize: 16,
-                                      color: asset.totalVariation >= 0 ? Colors.green : Colors.red,
+                                      color: asset.totalVariation >= 0
+                                          ? Colors.green
+                                          : Colors.red,
                                     ),
                                   ),
-
-
                                 ],
                               ),
                             ],
@@ -392,11 +427,43 @@ class _AssetListState extends State<AssetList> {
           ),
         ],
       ),
+      bottomNavigationBar: BottomAppBar(
+        notchMargin: 8.0,
+        shape: const CircularNotchedRectangle(),
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _bottomAction(FontAwesomeIcons.clockRotateLeft),
+            _bottomAction(FontAwesomeIcons.chartPie),
+            const SizedBox(width: 48.0),
+            _bottomAction(FontAwesomeIcons.wallet),
+            _bottomAction(Icons.settings),
+          ],
+        ),
+      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     _showAddAssetDialog(context);
+      //   },
+      //   child: const Icon(Icons.add),
+      // ),
+
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color.fromRGBO(150, 150, 150, 1.0),
+        child: const Icon(Icons.add),
         onPressed: () {
           _showAddAssetDialog(context);
+          // Future.delayed(const Duration(seconds: 3)).then(
+          //       (value) => Navigator.pushReplacement(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (context) => _graph(),
+          //     ),
+          //   ),
+          // );
         },
-        child: const Icon(Icons.add),
       ),
     );
   }

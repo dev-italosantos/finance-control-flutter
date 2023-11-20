@@ -10,5 +10,4 @@ class Active {
     required this.acronym,
     required this.price
   });
-
 }
