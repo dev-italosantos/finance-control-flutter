@@ -241,6 +241,7 @@ class _AssetListState extends State<AssetList> {
           'Minha Carteira de Ativos',
           style: TextStyle(
             fontSize: 16,
+            color: Colors.white,
           ),
         ),
         backgroundColor: Colors.black,
@@ -259,7 +260,7 @@ class _AssetListState extends State<AssetList> {
                     'Total Gained/Lost:',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey,
+                      color: Colors.white,
                     ),
                   ),
                   Text(
@@ -267,7 +268,7 @@ class _AssetListState extends State<AssetList> {
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey,
+                      color: Colors.white,
                       fontFamily: 'Monospace',
                     ),
                   ),
@@ -336,7 +337,7 @@ class _AssetListState extends State<AssetList> {
                                 'R\$ ${(asset.averagePrice * asset.quantity).toStringAsFixed(2)}',
                                 style: const TextStyle(
                                   fontSize: 16,
-                                  color: Colors.white,
+                                  color: Colors.grey,
                                 ),
                               ),
                             ],
@@ -356,7 +357,7 @@ class _AssetListState extends State<AssetList> {
                                 'R\$ ${asset.averagePrice.toStringAsFixed(2)}',
                                 style: const TextStyle(
                                   fontSize: 16,
-                                  color: Colors.white,
+                                  color: Colors.grey,
                                 ),
                               ),
                             ],
@@ -376,7 +377,7 @@ class _AssetListState extends State<AssetList> {
                                 'R\$ ${asset.currentPrice.toStringAsFixed(2)}',
                                 style: const TextStyle(
                                   fontSize: 16,
-                                  color: Colors.white,
+                                  color: Colors.grey,
                                 ),
                               ),
                             ],
@@ -409,7 +410,7 @@ class _AssetListState extends State<AssetList> {
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: asset.totalVariation >= 0
-                                          ? Colors.green
+                                          ? Colors.grey
                                           : Colors.red,
                                     ),
                                   ),

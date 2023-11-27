@@ -16,7 +16,6 @@ class _HomePageState extends State<HomePage> {
   List<Active> selecionadas = [];
   NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
 
-
   appBarDynamics() {
     if (selecionadas.isEmpty) {
         return AppBar(
@@ -65,11 +64,11 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: selecionadas.isNotEmpty ? FloatingActionButton(
         backgroundColor: const Color.fromRGBO(150, 150, 150, 1.0),
         child: const Icon(Icons.add),
         onPressed: () {},
-      ),
+      ) : null,
       body: ListView.separated(
         itemBuilder: (BuildContext context, int active) {
           bool isSelected = selecionadas.contains(tabela[active]);
