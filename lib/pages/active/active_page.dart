@@ -52,7 +52,7 @@ class Asset {
 }
 
 class _AssetListState extends State<AssetList> {
-  final List<Asset> assets = [];
+  List<Asset> assets = [];
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController tickerController = TextEditingController();
@@ -64,6 +64,55 @@ class _AssetListState extends State<AssetList> {
   void initState() {
     super.initState();
     _loadAssets();
+  }
+
+  appBarDynamics() {
+    if (assets.isEmpty) {
+      return AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Future.delayed(const Duration(seconds: 1)).then(
+              (value) => Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HomePage(),
+                ),
+              ),
+            );
+          },
+        ),
+        title: const Text(
+          'Minha Carteira de Ativos',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.black,
+      );
+    } else {
+      return AppBar(
+        backgroundColor: Colors.black,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            setState(() {
+              assets = [];
+              Future.delayed(const Duration(seconds: 1)).then(
+                (value) => Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HomePage(),
+                  ),
+                ),
+              );
+            });
+          },
+        ),
+        title: Text('${assets.length} selecionadas'),
+      );
+    }
   }
 
   Future<void> _loadAssets() async {
@@ -223,29 +272,7 @@ class _AssetListState extends State<AssetList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Future.delayed(const Duration(seconds: 1)).then(
-                  (value) => Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const HomePage(),
-                ),
-              ),
-            );
-          },
-        ),
-        title: const Text(
-          'Minha Carteira de Ativos',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: Colors.black,
-      ),
+      appBar: appBarDynamics(),
       body: Column(
         children: [
           Card(
@@ -279,6 +306,9 @@ class _AssetListState extends State<AssetList> {
               itemCount: assets.length,
               itemBuilder: (context, index) {
                 final asset = assets[index];
+
+                bool isSelected = assets.contains(assets[index]);
+
                 return Card(
                   elevation: 4,
                   margin: const EdgeInsets.all(12),
@@ -291,6 +321,11 @@ class _AssetListState extends State<AssetList> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: ListTile(
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(12),
+                        ),
+                      ),
                       contentPadding: const EdgeInsets.all(16),
                       title: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
