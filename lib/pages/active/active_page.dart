@@ -266,10 +266,8 @@ class _AssetListState extends State<AssetList> {
                   Text(
                     'R\$ ${totalGainedOrLost.toStringAsFixed(2)}',
                     style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
                       color: Colors.white,
-                      fontFamily: 'Monospace',
                     ),
                   ),
                 ],
@@ -303,7 +301,7 @@ class _AssetListState extends State<AssetList> {
                               Text(
                                 '${asset.ticker} - ${asset.quantity} Cotas',
                                 style: const TextStyle(
-                                  fontSize: 18,
+                                  fontSize: 17,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white, // Cor do texto
                                 ),
@@ -311,7 +309,8 @@ class _AssetListState extends State<AssetList> {
                               Text(
                                 'R\$ ${asset.totalAmount.toStringAsFixed(2)}',
                                 style: const TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
                               ),
