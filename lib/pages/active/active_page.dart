@@ -53,6 +53,9 @@ class Asset {
 
 class _AssetListState extends State<AssetList> {
   List<Asset> assets = [];
+  Set<Asset> selectedAssets = Set<Asset>(); // Usaremos um conjunto para armazenar os ativos selecionados
+
+  Color selectedBackgroundColor = Colors.blue;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController tickerController = TextEditingController();
@@ -67,13 +70,13 @@ class _AssetListState extends State<AssetList> {
   }
 
   appBarDynamics() {
-    if (assets.isEmpty) {
+    if (selectedAssets.isEmpty) {
       return AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Future.delayed(const Duration(seconds: 1)).then(
-              (value) => Navigator.pushReplacement(
+                  (value) => Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const HomePage(),
@@ -98,9 +101,8 @@ class _AssetListState extends State<AssetList> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             setState(() {
-              assets = [];
               Future.delayed(const Duration(seconds: 1)).then(
-                (value) => Navigator.pushReplacement(
+                    (value) => Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const HomePage(),
@@ -110,7 +112,7 @@ class _AssetListState extends State<AssetList> {
             });
           },
         ),
-        title: Text('${assets.length} selecionadas'),
+        title: Text('${selectedAssets.length} selecionadas'),
       );
     }
   }
@@ -131,7 +133,7 @@ class _AssetListState extends State<AssetList> {
   Future<void> _saveAssets() async {
     final prefs = await SharedPreferences.getInstance();
     final assetList =
-        assets.map((asset) => jsonEncode(asset.toJson())).toList();
+    assets.map((asset) => jsonEncode(asset.toJson())).toList();
     await prefs.setStringList('assets', assetList);
   }
 
@@ -167,7 +169,7 @@ class _AssetListState extends State<AssetList> {
                 TextFormField(
                   controller: averagePriceController,
                   keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(labelText: 'Preço Médio'),
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -179,7 +181,7 @@ class _AssetListState extends State<AssetList> {
                 TextFormField(
                   controller: currentPriceController,
                   keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(labelText: 'Preço Atual'),
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -191,7 +193,7 @@ class _AssetListState extends State<AssetList> {
                 TextFormField(
                   controller: quantityController,
                   keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(labelText: 'Quantidade'),
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -306,8 +308,7 @@ class _AssetListState extends State<AssetList> {
               itemCount: assets.length,
               itemBuilder: (context, index) {
                 final asset = assets[index];
-
-                bool isSelected = assets.contains(assets[index]);
+                final isSelected = selectedAssets.contains(asset);
 
                 return Card(
                   elevation: 4,
@@ -317,7 +318,9 @@ class _AssetListState extends State<AssetList> {
                   ),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.grey[900], // Cor de fundo mais escura
+                      color: isSelected
+                          ? selectedBackgroundColor
+                          : Colors.grey[900], // Alterado para usar a variável selectedBackgroundColor
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: ListTile(
@@ -454,6 +457,18 @@ class _AssetListState extends State<AssetList> {
                           ),
                         ],
                       ),
+                      selected: isSelected,
+                      onLongPress: () {
+                        setState(() {
+                          isSelected
+                              ? selectedAssets.remove(asset)
+                              : selectedAssets.add(asset);
+                        });
+                        selectedBackgroundColor = (isSelected
+                            ? Colors.grey[900]
+                            : Colors.blue)!; // Defina a cor desejada
+                      },
+
                     ),
                   ),
                 );
@@ -477,27 +492,12 @@ class _AssetListState extends State<AssetList> {
           ],
         ),
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {
-      //     _showAddAssetDialog(context);
-      //   },
-      //   child: const Icon(Icons.add),
-      // ),
-
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color.fromRGBO(150, 150, 150, 1.0),
         child: const Icon(Icons.add),
         onPressed: () {
           _showAddAssetDialog(context);
-          // Future.delayed(const Duration(seconds: 3)).then(
-          //       (value) => Navigator.pushReplacement(
-          //     context,
-          //     MaterialPageRoute(
-          //       builder: (context) => _graph(),
-          //     ),
-          //   ),
-          // );
         },
       ),
     );
