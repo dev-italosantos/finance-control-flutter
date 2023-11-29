@@ -53,7 +53,7 @@ class Asset {
 
 class _AssetListState extends State<AssetList> {
   List<Asset> assets = [];
-  Set<Asset> selectedAssets = Set<Asset>(); // Usaremos um conjunto para armazenar os ativos selecionados
+  Asset? selectedAsset; // Alteração para armazenar apenas um ativo selecionado
 
   Color selectedBackgroundColor = Colors.blue;
 
@@ -70,7 +70,7 @@ class _AssetListState extends State<AssetList> {
   }
 
   appBarDynamics() {
-    if (selectedAssets.isEmpty) {
+    if (selectedAsset == null) {
       return AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -112,7 +112,7 @@ class _AssetListState extends State<AssetList> {
             });
           },
         ),
-        title: Text('${selectedAssets.length} selecionadas'),
+        title: const Text('selecionado'), // Alterado para exibir apenas "1 selecionado"
       );
     }
   }
@@ -140,6 +140,7 @@ class _AssetListState extends State<AssetList> {
   void _addAsset(Asset newAsset) {
     setState(() {
       assets.add(newAsset);
+      selectedAsset = newAsset; // Define o ativo selecionado
     });
     _saveAssets();
   }
@@ -308,7 +309,7 @@ class _AssetListState extends State<AssetList> {
               itemCount: assets.length,
               itemBuilder: (context, index) {
                 final asset = assets[index];
-                final isSelected = selectedAssets.contains(asset);
+                final isSelected = selectedAsset == asset; // Alteração para verificar se o ativo está selecionado
 
                 return Card(
                   elevation: 4,
@@ -458,17 +459,14 @@ class _AssetListState extends State<AssetList> {
                         ],
                       ),
                       selected: isSelected,
-                      onLongPress: () {
+                      onTap: () {
                         setState(() {
-                          isSelected
-                              ? selectedAssets.remove(asset)
-                              : selectedAssets.add(asset);
+                          selectedAsset = isSelected ? null : asset; // Seleciona ou deseleciona o ativo
                         });
                         selectedBackgroundColor = (isSelected
                             ? Colors.grey[900]
-                            : Colors.blue)!; // Defina a cor desejada
+                            : Colors.blue)!; // Define a cor desejada
                       },
-
                     ),
                   ),
                 );
