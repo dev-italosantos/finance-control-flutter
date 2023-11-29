@@ -112,7 +112,10 @@ class _AssetListState extends State<AssetList> {
             });
           },
         ),
-        title: const Text('selecionado'), // Alterado para exibir apenas "1 selecionado"
+        title: Text(
+          '${selectedAsset!.ticker} selecionado', // Exibe o nome do ativo selecionado
+          style: const TextStyle(fontSize: 16, color: Colors.white),
+        ),
       );
     }
   }
