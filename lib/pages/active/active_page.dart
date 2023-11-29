@@ -76,7 +76,7 @@ class _AssetListState extends State<AssetList> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Future.delayed(const Duration(seconds: 1)).then(
-                  (value) => Navigator.pushReplacement(
+              (value) => Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const HomePage(),
@@ -97,6 +97,10 @@ class _AssetListState extends State<AssetList> {
     } else {
       return AppBar(
         backgroundColor: Colors.black,
+        title: Text(
+          '${selectedAsset!.ticker} selecionado',
+          style: const TextStyle(fontSize: 16, color: Colors.white),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -112,48 +116,31 @@ class _AssetListState extends State<AssetList> {
             });
           },
         ),
-        title: Text(
-          '${selectedAsset!.ticker} selecionado', // Exibe o nome do ativo selecionado
-          style: const TextStyle(fontSize: 16, color: Colors.white),
-        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              _showEditAssetDialog(context, selectedAsset!);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () {
+              _showDeleteAssetDialog(context, selectedAsset!);
+            },
+          ),
+        ],
       );
     }
   }
 
-  Future<void> _loadAssets() async {
-    final prefs = await SharedPreferences.getInstance();
-    final assetList = prefs.getStringList('assets');
-
-    if (assetList != null) {
-      setState(() {
-        assets.clear();
-        assets
-            .addAll(assetList.map((json) => Asset.fromJson(jsonDecode(json))));
-      });
-    }
-  }
-
-  Future<void> _saveAssets() async {
-    final prefs = await SharedPreferences.getInstance();
-    final assetList =
-    assets.map((asset) => jsonEncode(asset.toJson())).toList();
-    await prefs.setStringList('assets', assetList);
-  }
-
-  void _addAsset(Asset newAsset) {
-    setState(() {
-      assets.add(newAsset);
-      selectedAsset = newAsset; // Define o ativo selecionado
-    });
-    _saveAssets();
-  }
-
-  void _showAddAssetDialog(BuildContext context) {
+  // Função para exibir o diálogo de edição do ativo
+  void _showEditAssetDialog(BuildContext context, Asset asset) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Adicionar Ativo'),
+          title: const Text('Editar Ativo'),
           content: Form(
             key: _formKey,
             child: Column(
@@ -198,6 +185,153 @@ class _AssetListState extends State<AssetList> {
                   controller: quantityController,
                   keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(labelText: 'Quantidade'),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Por favor, insira a Quantidade';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ), // Adicione a interface de edição
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Adicione a lógica para editar o ativo aqui
+                // Você pode acessar as propriedades do ativo usando a instância 'asset'
+                // Atualize os detalhes do ativo e salve as alterações
+                // Após editar, você pode chamar _loadAssets() para atualizar a lista
+                _loadAssets();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Salvar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+// Função para exibir o diálogo de exclusão do ativo
+  void _showDeleteAssetDialog(BuildContext context, Asset asset) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Excluir Ativo'),
+          content: const Text('Tem certeza que deseja excluir este ativo?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Adicione a lógica para excluir o ativo aqui
+                // Você pode acessar as propriedades do ativo usando a instância 'asset'
+                // Remova o ativo da lista e salve as alterações
+                // Após excluir, você pode chamar _loadAssets() para atualizar a lista
+                assets.remove(asset);
+                _saveAssets();
+                _loadAssets();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Excluir'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _loadAssets() async {
+    final prefs = await SharedPreferences.getInstance();
+    final assetList = prefs.getStringList('assets');
+
+    if (assetList != null) {
+      setState(() {
+        assets.clear();
+        assets
+            .addAll(assetList.map((json) => Asset.fromJson(jsonDecode(json))));
+      });
+    }
+  }
+
+  Future<void> _saveAssets() async {
+    final prefs = await SharedPreferences.getInstance();
+    final assetList =
+        assets.map((asset) => jsonEncode(asset.toJson())).toList();
+    await prefs.setStringList('assets', assetList);
+  }
+
+  void _addAsset(Asset newAsset) {
+    setState(() {
+      assets.add(newAsset);
+      selectedAsset = newAsset; // Define o ativo selecionado
+    });
+    _saveAssets();
+  }
+
+  void _showAddAssetDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Adicionar Ativo'),
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                TextFormField(
+                  controller: tickerController,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: const InputDecoration(labelText: 'Ticker'),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Por favor, insira um Ticker';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: averagePriceController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(labelText: 'Preço Médio'),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Por favor, insira o Preço Médio';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: currentPriceController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(labelText: 'Preço Atual'),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Por favor, insira o Preço Atual';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: quantityController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(labelText: 'Quantidade'),
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -312,7 +446,8 @@ class _AssetListState extends State<AssetList> {
               itemCount: assets.length,
               itemBuilder: (context, index) {
                 final asset = assets[index];
-                final isSelected = selectedAsset == asset; // Alteração para verificar se o ativo está selecionado
+                final isSelected = selectedAsset ==
+                    asset; // Alteração para verificar se o ativo está selecionado
 
                 return Card(
                   elevation: 4,
@@ -324,7 +459,8 @@ class _AssetListState extends State<AssetList> {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? selectedBackgroundColor
-                          : Colors.grey[900], // Alterado para usar a variável selectedBackgroundColor
+                          : Colors.grey[
+                              900], // Alterado para usar a variável selectedBackgroundColor
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: ListTile(
@@ -464,7 +600,9 @@ class _AssetListState extends State<AssetList> {
                       selected: isSelected,
                       onTap: () {
                         setState(() {
-                          selectedAsset = isSelected ? null : asset; // Seleciona ou deseleciona o ativo
+                          selectedAsset = isSelected
+                              ? null
+                              : asset; // Seleciona ou deseleciona o ativo
                         });
                         selectedBackgroundColor = (isSelected
                             ? Colors.grey[900]
