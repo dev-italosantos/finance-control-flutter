@@ -133,6 +133,7 @@ class _AssetListState extends State<AssetList> {
       );
     }
   }
+
   void _showEditAssetDialog(BuildContext context, Asset asset) {
     // Inicialize os controladores com os valores do ativo selecionado
     tickerController.text = asset.ticker;
@@ -230,6 +231,12 @@ class _AssetListState extends State<AssetList> {
 
                     // Recarregue os ativos
                     _loadAssets();
+
+                    // Limpe os controladores do formulário
+                    tickerController.clear();
+                    averagePriceController.clear();
+                    currentPriceController.clear();
+                    quantityController.clear();
 
                     // Feche o diálogo
                     Navigator.of(context).pop();
