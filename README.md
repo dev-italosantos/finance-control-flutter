@@ -59,4 +59,4 @@ accessibility and advanced analytics, it seeks to empower investors to make more
     <img src="assets/images/readme/edit_active_page.png" alt="Page Edit Active"/>
 </p>
 
-<h6 align="center">Sorry it's still in development</h6>h
+<h6 align="center">Sorry it's still in development</h6>
