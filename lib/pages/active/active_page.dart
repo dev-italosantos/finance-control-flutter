@@ -134,7 +134,6 @@ class _AssetListState extends State<AssetList> {
     }
   }
 
-  // Função para exibir o diálogo de edição do ativo
   void _showEditAssetDialog(BuildContext context, Asset asset) {
     showDialog(
       context: context,
@@ -195,7 +194,7 @@ class _AssetListState extends State<AssetList> {
                 ),
               ],
             ),
-          ), // Adicione a interface de edição
+          ),
           actions: <Widget>[
             TextButton(
               onPressed: () {
@@ -205,12 +204,35 @@ class _AssetListState extends State<AssetList> {
             ),
             TextButton(
               onPressed: () {
-                // Adicione a lógica para editar o ativo aqui
-                // Você pode acessar as propriedades do ativo usando a instância 'asset'
-                // Atualize os detalhes do ativo e salve as alterações
-                // Após editar, você pode chamar _loadAssets() para atualizar a lista
-                _loadAssets();
-                Navigator.of(context).pop();
+                if (_formKey.currentState!.validate()) {
+                  // Lógica para editar o ativo
+                  final ticker = tickerController.text.toUpperCase();
+                  final averagePrice = double.tryParse(averagePriceController.text) ?? 0.0;
+                  final currentPrice = double.tryParse(currentPriceController.text) ?? 0.0;
+                  final quantity = int.tryParse(quantityController.text) ?? 0;
+
+                  if (ticker.isNotEmpty && averagePrice > 0 && currentPrice > 0 && quantity > 0) {
+                    final editedAsset = Asset(
+                      ticker: ticker,
+                      averagePrice: averagePrice,
+                      currentPrice: currentPrice,
+                      quantity: quantity,
+                    );
+
+                    // Substitua o ativo antigo pelo ativo editado na lista
+                    final index = assets.indexOf(asset);
+                    assets[index] = editedAsset;
+
+                    // Salve as alterações
+                    _saveAssets();
+
+                    // Recarregue os ativos
+                    _loadAssets();
+
+                    // Feche o diálogo
+                    Navigator.of(context).pop();
+                  }
+                }
               },
               child: const Text('Salvar'),
             ),
@@ -446,9 +468,7 @@ class _AssetListState extends State<AssetList> {
               itemCount: assets.length,
               itemBuilder: (context, index) {
                 final asset = assets[index];
-                final isSelected = selectedAsset ==
-                    asset; // Alteração para verificar se o ativo está selecionado
-
+                final isSelected = selectedAsset == asset; // Alteração para verificar se o ativo está selecionado
                 return Card(
                   elevation: 4,
                   margin: const EdgeInsets.all(12),
