@@ -52,7 +52,10 @@ class Asset {
 }
 
 class _AssetListState extends State<AssetList> {
-  final List<Asset> assets = [];
+  List<Asset> assets = [];
+  Asset? selectedAsset; // Alteração para armazenar apenas um ativo selecionado
+
+  Color selectedBackgroundColor = Colors.blue;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController tickerController = TextEditingController();
@@ -64,6 +67,214 @@ class _AssetListState extends State<AssetList> {
   void initState() {
     super.initState();
     _loadAssets();
+  }
+
+  appBarDynamics() {
+    if (selectedAsset == null) {
+      return AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Future.delayed(const Duration(seconds: 1)).then(
+              (value) => Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HomePage(),
+                ),
+              ),
+            );
+          },
+        ),
+        title: const Text(
+          'Minha Carteira de Ativos',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.black,
+      );
+    } else {
+      return AppBar(
+        backgroundColor: Colors.black,
+        title: Text(
+          '${selectedAsset!.ticker} selecionado',
+          style: const TextStyle(fontSize: 16, color: Colors.white),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            setState(() {
+              Future.delayed(const Duration(seconds: 1)).then(
+                    (value) => Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HomePage(),
+                  ),
+                ),
+              );
+            });
+          },
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              _showEditAssetDialog(context, selectedAsset!);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () {
+              _showDeleteAssetDialog(context, selectedAsset!);
+            },
+          ),
+        ],
+      );
+    }
+  }
+  void _showEditAssetDialog(BuildContext context, Asset asset) {
+    // Inicialize os controladores com os valores do ativo selecionado
+    tickerController.text = asset.ticker;
+    averagePriceController.text = asset.averagePrice.toString();
+    currentPriceController.text = asset.currentPrice.toString();
+    quantityController.text = asset.quantity.toString();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Editar Ativo'),
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                TextFormField(
+                  controller: tickerController,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: const InputDecoration(labelText: 'Ticker'),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Por favor, insira um Ticker';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: averagePriceController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(labelText: 'Preço Médio'),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Por favor, insira o Preço Médio';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: currentPriceController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(labelText: 'Preço Atual'),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Por favor, insira o Preço Atual';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: quantityController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(labelText: 'Quantidade'),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Por favor, insira a Quantidade';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  // Lógica para editar o ativo
+                  final ticker = tickerController.text.toUpperCase();
+                  final averagePrice = double.tryParse(averagePriceController.text) ?? 0.0;
+                  final currentPrice = double.tryParse(currentPriceController.text) ?? 0.0;
+                  final quantity = int.tryParse(quantityController.text) ?? 0;
+
+                  if (ticker.isNotEmpty && averagePrice > 0 && currentPrice > 0 && quantity > 0) {
+                    final editedAsset = Asset(
+                      ticker: ticker,
+                      averagePrice: averagePrice,
+                      currentPrice: currentPrice,
+                      quantity: quantity,
+                    );
+
+                    // Substitua o ativo antigo pelo ativo editado na lista
+                    final index = assets.indexOf(asset);
+                    assets[index] = editedAsset;
+
+                    // Salve as alterações
+                    _saveAssets();
+
+                    // Recarregue os ativos
+                    _loadAssets();
+
+                    // Feche o diálogo
+                    Navigator.of(context).pop();
+                  }
+                }
+              },
+              child: const Text('Salvar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDeleteAssetDialog(BuildContext context, Asset asset) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Excluir Ativo'),
+          content: const Text('Tem certeza que deseja excluir este ativo?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Adicione a lógica para excluir o ativo aqui
+                // Você pode acessar as propriedades do ativo usando a instância 'asset'
+                // Remova o ativo da lista e salve as alterações
+                // Após excluir, você pode chamar _loadAssets() para atualizar a lista
+                assets.remove(asset);
+                _saveAssets();
+                _loadAssets();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Excluir'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _loadAssets() async {
@@ -89,6 +300,7 @@ class _AssetListState extends State<AssetList> {
   void _addAsset(Asset newAsset) {
     setState(() {
       assets.add(newAsset);
+      selectedAsset = newAsset; // Define o ativo selecionado
     });
     _saveAssets();
   }
@@ -223,28 +435,7 @@ class _AssetListState extends State<AssetList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Future.delayed(const Duration(seconds: 1)).then(
-                  (value) => Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const HomePage(),
-                ),
-              ),
-            );
-          },
-        ),
-        title: const Text(
-          'Minha Carteira de Ativos',
-          style: TextStyle(
-            fontSize: 16,
-          ),
-        ),
-        backgroundColor: Colors.black,
-      ),
+      appBar: appBarDynamics(),
       body: Column(
         children: [
           Card(
@@ -259,16 +450,14 @@ class _AssetListState extends State<AssetList> {
                     'Total Gained/Lost:',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey,
+                      color: Colors.white,
                     ),
                   ),
                   Text(
                     'R\$ ${totalGainedOrLost.toStringAsFixed(2)}',
                     style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
-                      fontFamily: 'Monospace',
+                      fontSize: 14,
+                      color: Colors.white,
                     ),
                   ),
                 ],
@@ -280,6 +469,7 @@ class _AssetListState extends State<AssetList> {
               itemCount: assets.length,
               itemBuilder: (context, index) {
                 final asset = assets[index];
+                final isSelected = selectedAsset == asset; // Alteração para verificar se o ativo está selecionado
                 return Card(
                   elevation: 4,
                   margin: const EdgeInsets.all(12),
@@ -288,10 +478,18 @@ class _AssetListState extends State<AssetList> {
                   ),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.grey[900], // Cor de fundo mais escura
+                      color: isSelected
+                          ? selectedBackgroundColor
+                          : Colors.grey[
+                              900], // Alterado para usar a variável selectedBackgroundColor
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: ListTile(
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(12),
+                        ),
+                      ),
                       contentPadding: const EdgeInsets.all(16),
                       title: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -302,7 +500,7 @@ class _AssetListState extends State<AssetList> {
                               Text(
                                 '${asset.ticker} - ${asset.quantity} Cotas',
                                 style: const TextStyle(
-                                  fontSize: 18,
+                                  fontSize: 17,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white, // Cor do texto
                                 ),
@@ -310,7 +508,8 @@ class _AssetListState extends State<AssetList> {
                               Text(
                                 'R\$ ${asset.totalAmount.toStringAsFixed(2)}',
                                 style: const TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
                               ),
@@ -336,7 +535,7 @@ class _AssetListState extends State<AssetList> {
                                 'R\$ ${(asset.averagePrice * asset.quantity).toStringAsFixed(2)}',
                                 style: const TextStyle(
                                   fontSize: 16,
-                                  color: Colors.white,
+                                  color: Colors.grey,
                                 ),
                               ),
                             ],
@@ -356,7 +555,7 @@ class _AssetListState extends State<AssetList> {
                                 'R\$ ${asset.averagePrice.toStringAsFixed(2)}',
                                 style: const TextStyle(
                                   fontSize: 16,
-                                  color: Colors.white,
+                                  color: Colors.grey,
                                 ),
                               ),
                             ],
@@ -376,7 +575,7 @@ class _AssetListState extends State<AssetList> {
                                 'R\$ ${asset.currentPrice.toStringAsFixed(2)}',
                                 style: const TextStyle(
                                   fontSize: 16,
-                                  color: Colors.white,
+                                  color: Colors.grey,
                                 ),
                               ),
                             ],
@@ -409,7 +608,7 @@ class _AssetListState extends State<AssetList> {
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: asset.totalVariation >= 0
-                                          ? Colors.green
+                                          ? Colors.grey
                                           : Colors.red,
                                     ),
                                   ),
@@ -419,6 +618,17 @@ class _AssetListState extends State<AssetList> {
                           ),
                         ],
                       ),
+                      selected: isSelected,
+                      onTap: () {
+                        setState(() {
+                          selectedAsset = isSelected
+                              ? null
+                              : asset; // Seleciona ou deseleciona o ativo
+                        });
+                        selectedBackgroundColor = (isSelected
+                            ? Colors.grey[900]
+                            : Colors.blue)!; // Define a cor desejada
+                      },
                     ),
                   ),
                 );
@@ -442,27 +652,12 @@ class _AssetListState extends State<AssetList> {
           ],
         ),
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {
-      //     _showAddAssetDialog(context);
-      //   },
-      //   child: const Icon(Icons.add),
-      // ),
-
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color.fromRGBO(150, 150, 150, 1.0),
         child: const Icon(Icons.add),
         onPressed: () {
           _showAddAssetDialog(context);
-          // Future.delayed(const Duration(seconds: 3)).then(
-          //       (value) => Navigator.pushReplacement(
-          //     context,
-          //     MaterialPageRoute(
-          //       builder: (context) => _graph(),
-          //     ),
-          //   ),
-          // );
         },
       ),
     );
