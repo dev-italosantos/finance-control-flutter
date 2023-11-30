@@ -55,7 +55,6 @@ accessibility and advanced analytics, it seeks to empower investors to make more
     <img src="assets/images/readme/add_home_page.png" alt="Page Add Home"/>
     <img src="assets/images/readme/active_page.png" alt="Page Active"/>
     <img src="assets/images/readme/add_active_page.png" alt="Page Add Active"/>,
-    <img src="assets/images/readme/add_active_page.png" alt="Page Add Active"/>
     <img src="assets/images/readme/edit_active_page.png" alt="Page Edit Active"/>
 </p>
 
