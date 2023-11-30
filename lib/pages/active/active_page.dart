@@ -133,8 +133,13 @@ class _AssetListState extends State<AssetList> {
       );
     }
   }
-
   void _showEditAssetDialog(BuildContext context, Asset asset) {
+    // Inicialize os controladores com os valores do ativo selecionado
+    tickerController.text = asset.ticker;
+    averagePriceController.text = asset.averagePrice.toString();
+    currentPriceController.text = asset.currentPrice.toString();
+    quantityController.text = asset.quantity.toString();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -158,8 +163,7 @@ class _AssetListState extends State<AssetList> {
                 ),
                 TextFormField(
                   controller: averagePriceController,
-                  keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(labelText: 'Preço Médio'),
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -170,8 +174,7 @@ class _AssetListState extends State<AssetList> {
                 ),
                 TextFormField(
                   controller: currentPriceController,
-                  keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(labelText: 'Preço Atual'),
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -182,8 +185,7 @@ class _AssetListState extends State<AssetList> {
                 ),
                 TextFormField(
                   controller: quantityController,
-                  keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(labelText: 'Quantidade'),
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -242,7 +244,6 @@ class _AssetListState extends State<AssetList> {
     );
   }
 
-// Função para exibir o diálogo de exclusão do ativo
   void _showDeleteAssetDialog(BuildContext context, Asset asset) {
     showDialog(
       context: context,
