@@ -129,7 +129,7 @@ class _AssetListState extends State<AssetList> {
               _showDeleteAssetDialog(context, selectedAsset!);
             },
           ),
-        ],
+        ].where((_) => selectedAsset != null).toList(), // Adiciona a verificação condicional aqui
       );
     }
   }
@@ -237,6 +237,11 @@ class _AssetListState extends State<AssetList> {
                     averagePriceController.clear();
                     currentPriceController.clear();
                     quantityController.clear();
+
+                    // Redefina selectedAsset para null
+                    setState(() {
+                      selectedAsset = null;
+                    });
 
                     // Feche o diálogo
                     Navigator.of(context).pop();
@@ -660,13 +665,13 @@ class _AssetListState extends State<AssetList> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: selectedAsset == null ? FloatingActionButton(
         backgroundColor: const Color.fromRGBO(150, 150, 150, 1.0),
         child: const Icon(Icons.add),
         onPressed: () {
           _showAddAssetDialog(context);
         },
-      ),
+      ) : null,
     );
   }
 }

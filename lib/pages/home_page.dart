@@ -42,6 +42,10 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  showDetails(Active active) {
+
+  }
+
   @override
   Widget build(BuildContext context) {
     final tabela = ActiveRepository.tabela;
@@ -67,7 +71,9 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: selecionadas.isNotEmpty ? FloatingActionButton(
         backgroundColor: const Color.fromRGBO(150, 150, 150, 1.0),
         child: const Icon(Icons.add),
-        onPressed: () {},
+        onPressed: () {
+
+        },
       ) : null,
       body: ListView.separated(
         itemBuilder: (BuildContext context, int active) {
@@ -107,6 +113,7 @@ class _HomePageState extends State<HomePage> {
                     : selecionadas.add(tabela[active]);
               });
             },
+            onTap: () => showDetails(tabela[active]),
           );
         },
         padding: const EdgeInsets.all(16.0),
