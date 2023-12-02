@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_investment_control/models/active_model.dart';
+import 'package:flutter_investment_control/pages/active/active_details_page.dart';
 import 'package:flutter_investment_control/pages/active/active_page.dart';
 import 'package:flutter_investment_control/repositories/active_repository.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -18,18 +19,19 @@ class _HomePageState extends State<HomePage> {
 
   appBarDynamics() {
     if (selecionadas.isEmpty) {
-        return AppBar(
-          title: const Text('Ativos de Investimentos',
-            style: TextStyle(
-              fontSize: 16,
-            ),
+      return AppBar(
+        title: const Text(
+          'Ativos de Investimentos',
+          style: TextStyle(
+            fontSize: 16,
           ),
-          backgroundColor: Colors.black,
-        );
+        ),
+        backgroundColor: Colors.black,
+      );
     } else {
       return AppBar(
         backgroundColor: Colors.black,
-        leading:  IconButton(
+        leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             setState(() {
@@ -43,7 +45,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   showDetails(Active active) {
-
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ActiveDetalisPage(active: active),
+      ),
+    );
   }
 
   @override
@@ -68,13 +75,13 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: selecionadas.isNotEmpty ? FloatingActionButton(
-        backgroundColor: const Color.fromRGBO(150, 150, 150, 1.0),
-        child: const Icon(Icons.add),
-        onPressed: () {
-
-        },
-      ) : null,
+      floatingActionButton: selecionadas.isNotEmpty
+          ? FloatingActionButton(
+              backgroundColor: const Color.fromRGBO(150, 150, 150, 1.0),
+              child: const Icon(Icons.add),
+              onPressed: () {},
+            )
+          : null,
       body: ListView.separated(
         itemBuilder: (BuildContext context, int active) {
           bool isSelected = selecionadas.contains(tabela[active]);
@@ -87,12 +94,12 @@ class _HomePageState extends State<HomePage> {
             ),
             leading: isSelected
                 ? const CircleAvatar(
-              child: Icon(Icons.check),
-            )
+                    child: Icon(Icons.check),
+                  )
                 : SizedBox(
-              width: 40.0,
-              child: Image.asset(tabela[active].icon),
-            ),
+                    width: 40.0,
+                    child: Image.asset(tabela[active].icon),
+                  ),
             title: Text(
               tabela[active].name,
               style: const TextStyle(
@@ -131,7 +138,7 @@ class _HomePageState extends State<HomePage> {
       ),
       onTap: () {
         Future.delayed(const Duration(seconds: 1)).then(
-              (value) => Navigator.pushReplacement(
+          (value) => Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => const AssetList(),
