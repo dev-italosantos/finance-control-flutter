@@ -5,10 +5,10 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AssetList extends StatefulWidget {
-  const AssetList({Key? key});
+  const AssetList({Key? key}) : super(key: key);
 
   @override
-  _AssetListState createState() => _AssetListState();
+  State<AssetList> createState() => _AssetListState();
 }
 
 class Asset {
