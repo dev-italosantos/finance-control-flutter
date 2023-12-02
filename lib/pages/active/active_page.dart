@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_investment_control/pages/home_page.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -54,7 +55,7 @@ class Asset {
 class _AssetListState extends State<AssetList> {
   List<Asset> assets = [];
   Asset? selectedAsset; // Alteração para armazenar apenas um ativo selecionado
-
+  NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
   Color selectedBackgroundColor = Colors.blue;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -474,7 +475,7 @@ class _AssetListState extends State<AssetList> {
                     ),
                   ),
                   Text(
-                    'R\$ ${totalGainedOrLost.toStringAsFixed(2)}',
+                    real.format(totalGainedOrLost),
                     style: const TextStyle(
                       fontSize: 14,
                       color: Colors.white,
@@ -526,7 +527,7 @@ class _AssetListState extends State<AssetList> {
                                 ),
                               ),
                               Text(
-                                'R\$ ${asset.totalAmount.toStringAsFixed(2)}',
+                                real.format(asset.totalAmount),
                                 style: const TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.bold,
@@ -552,7 +553,7 @@ class _AssetListState extends State<AssetList> {
                                 ),
                               ),
                               Text(
-                                'R\$ ${(asset.averagePrice * asset.quantity).toStringAsFixed(2)}',
+                                real.format(asset.averagePrice * asset.quantity),
                                 style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.grey,
@@ -572,7 +573,7 @@ class _AssetListState extends State<AssetList> {
                                 ),
                               ),
                               Text(
-                                'R\$ ${asset.averagePrice.toStringAsFixed(2)}',
+                                real.format(asset.averagePrice),
                                 style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.grey,
@@ -592,7 +593,7 @@ class _AssetListState extends State<AssetList> {
                                 ),
                               ),
                               Text(
-                                'R\$ ${asset.currentPrice.toStringAsFixed(2)}',
+                                real.format(asset.currentPrice),
                                 style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.grey,
