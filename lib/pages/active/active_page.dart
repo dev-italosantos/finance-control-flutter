@@ -201,7 +201,15 @@ class _AssetListState extends State<AssetList> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
+                tickerController.clear();
+                averagePriceController.clear();
+                currentPriceController.clear();
+                quantityController.clear();
                 Navigator.of(context).pop();
+
+                setState(() {
+                  selectedAsset = null;
+                });
               },
               child: const Text('Cancelar'),
             ),

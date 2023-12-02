@@ -13,6 +13,24 @@ class ActiveDetalisPage extends StatefulWidget {
 class _ActiveDetalisPageState extends State<ActiveDetalisPage> {
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.active.name),
+        backgroundColor: Colors.black,
+      ),
+      body: Column(
+        children: [
+          Divider(),
+          Row(
+            children: [
+              SizedBox(
+                child: Image.asset(widget.active.icon),
+                width: 50,
+              )
+            ],
+          )
+        ]
+      )
+    );
   }
 }
