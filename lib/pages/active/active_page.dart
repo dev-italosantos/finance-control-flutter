@@ -73,19 +73,6 @@ class _AssetListState extends State<AssetList> {
   appBarDynamics() {
     if (selectedAsset == null) {
       return AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Future.delayed(const Duration(seconds: 1)).then(
-              (value) => Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const HomePage(),
-                ),
-              ),
-            );
-          },
-        ),
         title: const Text(
           'Minha Carteira de Ativos',
           style: TextStyle(
@@ -546,32 +533,6 @@ class _AssetListState extends State<AssetList> {
       appBar: appBarDynamics(),
       body: Column(
         children: [
-          // Card(
-          //   margin: const EdgeInsets.all(16),
-          //   color: Colors.grey[900],
-          //   child: Padding(
-          //     padding: const EdgeInsets.all(16),
-          //     child: Row(
-          //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //       children: <Widget>[
-          //         const Text(
-          //           'Total Gained/Lost:',
-          //           style: TextStyle(
-          //             fontSize: 14,
-          //             color: Colors.white,
-          //           ),
-          //         ),
-          //         Text(
-          //           real.format(totalGainedOrLost),
-          //           style: const TextStyle(
-          //             fontSize: 14,
-          //             color: Colors.white,
-          //           ),
-          //         ),
-          //       ],
-          //     ),
-          //   ),
-          // ),
           _totalInfoCard(),
           Expanded(
             child: ListView.builder(
@@ -582,7 +543,7 @@ class _AssetListState extends State<AssetList> {
                     asset; // Alteração para verificar se o ativo está selecionado
                 return Card(
                   elevation: 4,
-                  margin: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.all(16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -609,22 +570,36 @@ class _AssetListState extends State<AssetList> {
                             children: [
                               Text(
                                 '${asset.ticker} - ${asset.quantity} Cotas',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white, // Cor do texto
+                                  color: isSelected
+                                      ? Colors.black
+                                      : Colors.white    // Cor quando o ativo não está selecionado
                                 ),
                               ),
-                              Text(
-                                real.format(asset.totalAmount),
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
+                              Row(
+                                children: [
+                                  Text(
+                                    '${((asset.totalAmount / _calculateTotalCurrent()) * 100).toStringAsFixed(2)}%',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    real.format(asset.totalAmount),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: isSelected ? Colors.black : Colors.white,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
-                          )
+                          ),
                         ],
                       ),
                       subtitle: Column(
@@ -707,7 +682,7 @@ class _AssetListState extends State<AssetList> {
                                   Text(
                                     '${asset.profitability.toStringAsFixed(2)}%',
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 14,
                                       color: asset.profitability >= 0
                                           ? Colors.green
                                           : Colors.red,
@@ -717,7 +692,7 @@ class _AssetListState extends State<AssetList> {
                                   Text(
                                     'R\$ ${asset.totalVariation.toStringAsFixed(2)}',
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 14,
                                       color: asset.totalVariation >= 0
                                           ? Colors.grey
                                           : Colors.red,
@@ -738,7 +713,7 @@ class _AssetListState extends State<AssetList> {
                         });
                         selectedBackgroundColor = (isSelected
                             ? Colors.grey[900]
-                            : Colors.blue)!; // Define a cor desejada
+                            : Colors.white)!; // Define a cor desejada
                       },
                     ),
                   ),

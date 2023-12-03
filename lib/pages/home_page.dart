@@ -137,12 +137,18 @@ class _HomePageState extends State<HomePage> {
         child: Icon(icon),
       ),
       onTap: () {
-        Future.delayed(const Duration(seconds: 1)).then(
-          (value) => Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AssetList(),
-            ),
+        // Future.delayed(const Duration(seconds: 1)).then(
+        //   (value) => Navigator.pushReplacement(
+        //     context,
+        //     MaterialPageRoute(
+        //       builder: (context) => const AssetList(),
+        //     ),
+        //   ),
+        // );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const AssetList(),
           ),
         );
       },
