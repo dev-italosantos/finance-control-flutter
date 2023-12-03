@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_investment_control/models/active_model.dart';
+import 'package:intl/intl.dart';
 
 class ActiveDetalisPage extends StatefulWidget {
   Active active;
@@ -11,6 +12,8 @@ class ActiveDetalisPage extends StatefulWidget {
 }
 
 class _ActiveDetalisPageState extends State<ActiveDetalisPage> {
+  NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,8 +27,8 @@ class _ActiveDetalisPageState extends State<ActiveDetalisPage> {
           Row(
             children: [
               SizedBox(
-                child: Image.asset(widget.active.icon),
                 width: 50,
+                child: Image.asset(widget.active.icon),
               )
             ],
           )
