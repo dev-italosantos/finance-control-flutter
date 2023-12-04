@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_investment_control/models/asset_model.dart';
+import 'package:flutter_investment_control/pages/active/graph_page.dart';
 import 'package:flutter_investment_control/pages/home_page.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
@@ -12,45 +14,6 @@ class AssetList extends StatefulWidget {
   State<AssetList> createState() => _AssetListState();
 }
 
-class Asset {
-  final String ticker;
-  final double averagePrice;
-  final double currentPrice;
-  final int quantity;
-
-  Asset({
-    required this.ticker,
-    required this.averagePrice,
-    required this.currentPrice,
-    required this.quantity,
-  });
-
-  double get totalAmount => currentPrice * quantity;
-  double get profitability =>
-      (currentPrice - averagePrice) / averagePrice * 100;
-
-  Map<String, dynamic> toJson() {
-    return {
-      'ticker': ticker,
-      'averagePrice': averagePrice,
-      'currentPrice': currentPrice,
-      'quantity': quantity,
-    };
-  }
-
-  factory Asset.fromJson(Map<String, dynamic> json) {
-    return Asset(
-      ticker: json['ticker'],
-      averagePrice: json['averagePrice'],
-      currentPrice: json['currentPrice'],
-      quantity: json['quantity'],
-    );
-  }
-
-  double get totalVariation {
-    return (currentPrice - averagePrice) * quantity;
-  }
-}
 
 class _AssetListState extends State<AssetList> {
   List<Asset> assets = [];
@@ -440,13 +403,13 @@ class _AssetListState extends State<AssetList> {
     return totalVariation;
   }
 
-  Widget _bottomAction(IconData icon) {
+  Widget _bottomAction(IconData icon, VoidCallback onTap) {
     return InkWell(
+      onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Icon(icon),
       ),
-      onTap: () {},
     );
   }
 
@@ -525,6 +488,16 @@ class _AssetListState extends State<AssetList> {
       totalCurrent += asset.currentPrice * asset.quantity;
     }
     return totalCurrent;
+  }
+
+  navigateToGraphPage(List<Asset> assetList) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GraphPage(assetList: assetList),
+      ),
+    );
+    // Adicione aqui a lógica para navegar para outra tela específica
   }
 
   @override
@@ -729,11 +702,11 @@ class _AssetListState extends State<AssetList> {
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _bottomAction(FontAwesomeIcons.clockRotateLeft),
-            _bottomAction(FontAwesomeIcons.chartPie),
+            _bottomAction(FontAwesomeIcons.clockRotateLeft, () => navigateToGraphPage),
+            _bottomAction(FontAwesomeIcons.chartPie, () => navigateToGraphPage(assets)),
             const SizedBox(width: 48.0),
-            _bottomAction(FontAwesomeIcons.wallet),
-            _bottomAction(Icons.settings),
+            _bottomAction(FontAwesomeIcons.wallet, () => navigateToGraphPage),
+            _bottomAction(Icons.settings, () => navigateToGraphPage),
           ],
         ),
       ),
