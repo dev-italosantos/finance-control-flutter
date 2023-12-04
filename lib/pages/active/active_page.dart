@@ -56,7 +56,7 @@ class _AssetListState extends State<AssetList> {
   List<Asset> assets = [];
   Asset? selectedAsset; // Alteração para armazenar apenas um ativo selecionado
   NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
-  Color selectedBackgroundColor = Colors.blue;
+  Color? selectedBackgroundColor = Colors.grey[900];
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController tickerController = TextEditingController();
@@ -285,6 +285,7 @@ class _AssetListState extends State<AssetList> {
                 assets.remove(asset);
                 _saveAssets();
                 _loadAssets();
+                selectedAsset = null;
                 Navigator.of(context).pop();
               },
               child: const Text('Excluir'),
@@ -318,7 +319,7 @@ class _AssetListState extends State<AssetList> {
   void _addAsset(Asset newAsset) {
     setState(() {
       assets.add(newAsset);
-      selectedAsset = newAsset; // Define o ativo selecionado
+      selectedAsset = null;
     });
     _saveAssets();
   }
@@ -420,7 +421,6 @@ class _AssetListState extends State<AssetList> {
                     currentPriceController.clear();
                     quantityController.clear();
 
-                    Navigator.of(context).pop();
                   }
                 }
               },
@@ -573,18 +573,17 @@ class _AssetListState extends State<AssetList> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: isSelected
-                                      ? Colors.black
-                                      : Colors.white    // Cor quando o ativo não está selecionado
+                                  color: isSelected ? Colors.black : Colors.white,
                                 ),
                               ),
                               Row(
                                 children: [
                                   Text(
                                     '${((asset.totalAmount / _calculateTotalCurrent()) * 100).toStringAsFixed(2)}%',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 14,
-                                      color: Colors.grey,
+                                      fontWeight: FontWeight.bold,
+                                      color: isSelected ? Colors.black : Colors.white,
                                     ),
                                   ),
                                   const SizedBox(width: 10),
