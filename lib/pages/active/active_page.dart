@@ -56,7 +56,7 @@ class _AssetListState extends State<AssetList> {
   List<Asset> assets = [];
   Asset? selectedAsset; // Alteração para armazenar apenas um ativo selecionado
   NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
-  Color selectedBackgroundColor = Colors.blue;
+  Color? selectedBackgroundColor = Colors.grey[900];
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController tickerController = TextEditingController();
@@ -73,19 +73,6 @@ class _AssetListState extends State<AssetList> {
   appBarDynamics() {
     if (selectedAsset == null) {
       return AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Future.delayed(const Duration(seconds: 1)).then(
-              (value) => Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const HomePage(),
-                ),
-              ),
-            );
-          },
-        ),
         title: const Text(
           'Minha Carteira de Ativos',
           style: TextStyle(
@@ -107,7 +94,7 @@ class _AssetListState extends State<AssetList> {
           onPressed: () {
             setState(() {
               Future.delayed(const Duration(seconds: 1)).then(
-                    (value) => Navigator.pushReplacement(
+                (value) => Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const HomePage(),
@@ -130,7 +117,9 @@ class _AssetListState extends State<AssetList> {
               _showDeleteAssetDialog(context, selectedAsset!);
             },
           ),
-        ].where((_) => selectedAsset != null).toList(), // Adiciona a verificação condicional aqui
+        ]
+            .where((_) => selectedAsset != null)
+            .toList(), // Adiciona a verificação condicional aqui
       );
     }
   }
@@ -165,7 +154,8 @@ class _AssetListState extends State<AssetList> {
                 ),
                 TextFormField(
                   controller: averagePriceController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(labelText: 'Preço Médio'),
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -176,7 +166,8 @@ class _AssetListState extends State<AssetList> {
                 ),
                 TextFormField(
                   controller: currentPriceController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(labelText: 'Preço Atual'),
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -187,7 +178,8 @@ class _AssetListState extends State<AssetList> {
                 ),
                 TextFormField(
                   controller: quantityController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(labelText: 'Quantidade'),
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -219,11 +211,16 @@ class _AssetListState extends State<AssetList> {
                 if (_formKey.currentState!.validate()) {
                   // Lógica para editar o ativo
                   final ticker = tickerController.text.toUpperCase();
-                  final averagePrice = double.tryParse(averagePriceController.text) ?? 0.0;
-                  final currentPrice = double.tryParse(currentPriceController.text) ?? 0.0;
+                  final averagePrice =
+                      double.tryParse(averagePriceController.text) ?? 0.0;
+                  final currentPrice =
+                      double.tryParse(currentPriceController.text) ?? 0.0;
                   final quantity = int.tryParse(quantityController.text) ?? 0;
 
-                  if (ticker.isNotEmpty && averagePrice > 0 && currentPrice > 0 && quantity > 0) {
+                  if (ticker.isNotEmpty &&
+                      averagePrice > 0 &&
+                      currentPrice > 0 &&
+                      quantity > 0) {
                     final editedAsset = Asset(
                       ticker: ticker,
                       averagePrice: averagePrice,
@@ -288,6 +285,7 @@ class _AssetListState extends State<AssetList> {
                 assets.remove(asset);
                 _saveAssets();
                 _loadAssets();
+                selectedAsset = null;
                 Navigator.of(context).pop();
               },
               child: const Text('Excluir'),
@@ -321,7 +319,7 @@ class _AssetListState extends State<AssetList> {
   void _addAsset(Asset newAsset) {
     setState(() {
       assets.add(newAsset);
-      selectedAsset = newAsset; // Define o ativo selecionado
+      selectedAsset = null;
     });
     _saveAssets();
   }
@@ -423,7 +421,6 @@ class _AssetListState extends State<AssetList> {
                     currentPriceController.clear();
                     quantityController.clear();
 
-                    Navigator.of(context).pop();
                   }
                 }
               },
@@ -453,47 +450,100 @@ class _AssetListState extends State<AssetList> {
     );
   }
 
+  Widget _totalInfoCard() {
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      color: Colors.grey[900],
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              _infoRow(
+                title: 'Total Investido',
+                amount: _calculateTotalInvested(),
+              ),
+              const SizedBox(height: 16),
+              _infoRow(
+                title: 'Total Atual',
+                amount: _calculateTotalCurrent(),
+              ),
+              const SizedBox(height: 16),
+              _infoRow(
+                title: 'Total Gained/Lost',
+                amount: totalGainedOrLost,
+                amountColor: totalGainedOrLost >= 0 ? Colors.green : Colors.red,
+              ),
+            ]),
+      ),
+    );
+  }
+
+  Widget _infoRow({
+    required String title,
+    required double amount,
+    Color? amountColor,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'R\$ ${amount.toStringAsFixed(2)}',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: amountColor ?? Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
+
+  double _calculateTotalInvested() {
+    double totalInvested = 0.0;
+    for (final asset in assets) {
+      totalInvested += asset.averagePrice * asset.quantity;
+    }
+    return totalInvested;
+  }
+
+  double _calculateTotalCurrent() {
+    double totalCurrent = 0.0;
+    for (final asset in assets) {
+      totalCurrent += asset.currentPrice * asset.quantity;
+    }
+    return totalCurrent;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: appBarDynamics(),
       body: Column(
         children: [
-          Card(
-            margin: const EdgeInsets.all(16),
-            color: Colors.grey[900],
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  const Text(
-                    'Total Gained/Lost:',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    real.format(totalGainedOrLost),
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          _totalInfoCard(),
           Expanded(
             child: ListView.builder(
               itemCount: assets.length,
               itemBuilder: (context, index) {
                 final asset = assets[index];
-                final isSelected = selectedAsset == asset; // Alteração para verificar se o ativo está selecionado
+                final isSelected = selectedAsset ==
+                    asset; // Alteração para verificar se o ativo está selecionado
                 return Card(
                   elevation: 4,
-                  margin: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.all(16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -520,22 +570,35 @@ class _AssetListState extends State<AssetList> {
                             children: [
                               Text(
                                 '${asset.ticker} - ${asset.quantity} Cotas',
-                                style: const TextStyle(
-                                  fontSize: 17,
+                                style: TextStyle(
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white, // Cor do texto
+                                  color: isSelected ? Colors.black : Colors.white,
                                 ),
                               ),
-                              Text(
-                                real.format(asset.totalAmount),
-                                style: const TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
+                              Row(
+                                children: [
+                                  Text(
+                                    '${((asset.totalAmount / _calculateTotalCurrent()) * 100).toStringAsFixed(2)}%',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: isSelected ? Colors.black : Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    real.format(asset.totalAmount),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: isSelected ? Colors.black : Colors.white,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
-                          )
+                          ),
                         ],
                       ),
                       subtitle: Column(
@@ -548,14 +611,15 @@ class _AssetListState extends State<AssetList> {
                               const Text(
                                 'Custo Médio',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   color: Colors.grey,
                                 ),
                               ),
                               Text(
-                                real.format(asset.averagePrice * asset.quantity),
+                                real.format(
+                                    asset.averagePrice * asset.quantity),
                                 style: const TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   color: Colors.grey,
                                 ),
                               ),
@@ -568,14 +632,14 @@ class _AssetListState extends State<AssetList> {
                               const Text(
                                 'Preço Médio',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   color: Colors.grey,
                                 ),
                               ),
                               Text(
                                 real.format(asset.averagePrice),
                                 style: const TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   color: Colors.grey,
                                 ),
                               ),
@@ -588,14 +652,14 @@ class _AssetListState extends State<AssetList> {
                               const Text(
                                 'Última Cotação',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   color: Colors.grey,
                                 ),
                               ),
                               Text(
                                 real.format(asset.currentPrice),
                                 style: const TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   color: Colors.grey,
                                 ),
                               ),
@@ -608,7 +672,7 @@ class _AssetListState extends State<AssetList> {
                               const Text(
                                 'Rentabilidade',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   color: Colors.grey,
                                 ),
                               ),
@@ -617,7 +681,7 @@ class _AssetListState extends State<AssetList> {
                                   Text(
                                     '${asset.profitability.toStringAsFixed(2)}%',
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 14,
                                       color: asset.profitability >= 0
                                           ? Colors.green
                                           : Colors.red,
@@ -627,7 +691,7 @@ class _AssetListState extends State<AssetList> {
                                   Text(
                                     'R\$ ${asset.totalVariation.toStringAsFixed(2)}',
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 14,
                                       color: asset.totalVariation >= 0
                                           ? Colors.grey
                                           : Colors.red,
@@ -648,7 +712,7 @@ class _AssetListState extends State<AssetList> {
                         });
                         selectedBackgroundColor = (isSelected
                             ? Colors.grey[900]
-                            : Colors.blue)!; // Define a cor desejada
+                            : Colors.white)!; // Define a cor desejada
                       },
                     ),
                   ),
@@ -674,13 +738,15 @@ class _AssetListState extends State<AssetList> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: selectedAsset == null ? FloatingActionButton(
-        backgroundColor: const Color.fromRGBO(150, 150, 150, 1.0),
-        child: const Icon(Icons.add),
-        onPressed: () {
-          _showAddAssetDialog(context);
-        },
-      ) : null,
+      floatingActionButton: selectedAsset == null
+          ? FloatingActionButton(
+              backgroundColor: const Color.fromRGBO(150, 150, 150, 1.0),
+              child: const Icon(Icons.add),
+              onPressed: () {
+                _showAddAssetDialog(context);
+              },
+            )
+          : null,
     );
   }
 }
