@@ -350,11 +350,8 @@ class _AssetListState extends State<AssetList> {
                         }
                         return null;
                       },
-                    ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        if (tickerController.text.isNotEmpty) {
-                          final ticker = tickerController.text.toUpperCase();
+                      onChanged: (ticker) async {
+                        if (ticker.isNotEmpty) {
                           final assetDetails = await getAssetDetails(ticker);
 
                           if (assetDetails != null) {
@@ -363,15 +360,12 @@ class _AssetListState extends State<AssetList> {
                                   assetDetails['averagePrice'].toString();
                               currentPriceController.text =
                                   assetDetails['currentPrice'].toString();
-                              quantityController.text =
-                                  assetDetails['quantity'].toString();
                             });
                           } else {
                             // Tratar caso não encontre os detalhes do ativo
                           }
                         }
                       },
-                      child: const Text('Preencher Detalhes'),
                     ),
                     TextFormField(
                       controller: averagePriceController,
@@ -461,7 +455,6 @@ class _AssetListState extends State<AssetList> {
       },
     );
   }
-
 
   double get totalGainedOrLost {
     double totalVariation = 0.0;
