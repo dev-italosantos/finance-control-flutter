@@ -23,6 +23,7 @@ class _AssetListState extends State<AssetList> {
   Color? selectedBackgroundColor = Colors.grey[900];
   String? selectedAssetCode;
   List<String> availableAssetCodes = []; // Adicione esta linha para rastrear os códigos de ativos disponíveis
+  bool isAddAssetDialogOpen = false;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController tickerController = TextEditingController();
@@ -328,6 +329,9 @@ class _AssetListState extends State<AssetList> {
   }
 
   void _showAddAssetDialog(BuildContext context) async {
+    setState(() {
+      isAddAssetDialogOpen = true;
+    });
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -356,8 +360,6 @@ class _AssetListState extends State<AssetList> {
 
                           if (assetDetails != null) {
                             setState(() {
-                              averagePriceController.text =
-                                  assetDetails['averagePrice'].toString();
                               currentPriceController.text =
                                   assetDetails['currentPrice'].toString();
                             });
@@ -437,6 +439,7 @@ class _AssetListState extends State<AssetList> {
 
                         _addAsset(newAsset);
 
+                        tickerController.clear();
                         averagePriceController.clear();
                         currentPriceController.clear();
                         quantityController.clear();
@@ -453,7 +456,11 @@ class _AssetListState extends State<AssetList> {
           },
         );
       },
-    );
+    ).then((value) {
+      setState(() {
+        isAddAssetDialogOpen = false;
+      });
+    });
   }
 
   double get totalGainedOrLost {
@@ -772,7 +779,7 @@ class _AssetListState extends State<AssetList> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: selectedAsset == null
+      floatingActionButton: !isAddAssetDialogOpen && selectedAsset == null
           ? FloatingActionButton(
               backgroundColor: const Color.fromRGBO(150, 150, 150, 1.0),
               child: const Icon(Icons.add),
