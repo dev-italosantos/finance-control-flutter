@@ -1,14 +1,18 @@
+import 'package:flutter_investment_control/models/transaction_model.dart';
+
 class Asset {
   final String ticker;
-  final double averagePrice;
+   double averagePrice;
   final double currentPrice;
-  final int quantity;
+   int quantity;
+  final List<Transaction> transactions;
 
   Asset({
     required this.ticker,
     required this.averagePrice,
     required this.currentPrice,
     required this.quantity,
+    required this.transactions,
   });
 
   double get totalAmount => currentPrice * quantity;
@@ -30,10 +34,15 @@ class Asset {
       averagePrice: json['averagePrice'],
       currentPrice: json['currentPrice'],
       quantity: json['quantity'],
+      transactions: [],
     );
   }
 
   double get totalVariation {
     return (currentPrice - averagePrice) * quantity;
+  }
+
+  void addTransaction(Transaction transaction) {
+    transactions.add(transaction);
   }
 }

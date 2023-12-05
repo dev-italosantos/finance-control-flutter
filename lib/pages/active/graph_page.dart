@@ -48,7 +48,7 @@ class GraphPage extends StatelessWidget {
 
     return Scaffold(
       body: Align(
-        alignment: Alignment.topCenter,
+        alignment: Alignment.center,
         child: SizedBox(
           width: 400,
           height: 300,
@@ -110,7 +110,7 @@ class GraphPage extends StatelessWidget {
 
     return Scaffold(
       body: Align(
-        alignment: Alignment.topCenter,
+        alignment: Alignment.center,
         child: SizedBox(
           width: 400, // Ajuste a largura conforme necessário
           height: 300, // Ajuste a altura conforme necessário

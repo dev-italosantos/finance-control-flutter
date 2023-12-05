@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_investment_control/models/asset_model.dart';
+import 'package:flutter_investment_control/models/transaction_model.dart';
+import 'package:flutter_investment_control/pages/active/extrato_page.dart';
 import 'package:flutter_investment_control/pages/active/graph_page.dart';
 import 'package:flutter_investment_control/pages/home_page.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -7,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:collection/collection.dart';
 
 class AssetList extends StatefulWidget {
   const AssetList({Key? key}) : super(key: key);
@@ -15,14 +18,14 @@ class AssetList extends StatefulWidget {
   State<AssetList> createState() => _AssetListState();
 }
 
-
 class _AssetListState extends State<AssetList> {
   List<Asset> assets = [];
   Asset? selectedAsset; // Alteração para armazenar apenas um ativo selecionado
   NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
   Color? selectedBackgroundColor = Colors.grey[900];
   String? selectedAssetCode;
-  List<String> availableAssetCodes = []; // Adicione esta linha para rastrear os códigos de ativos disponíveis
+  List<String> availableAssetCodes =
+      []; // Adicione esta linha para rastrear os códigos de ativos disponíveis
   bool isAddAssetDialogOpen = false;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -194,6 +197,7 @@ class _AssetListState extends State<AssetList> {
                       averagePrice: averagePrice,
                       currentPrice: currentPrice,
                       quantity: quantity,
+                      transactions: [],
                     );
 
                     // Substitua o ativo antigo pelo ativo editado na lista
@@ -290,9 +294,7 @@ class _AssetListState extends State<AssetList> {
         // Verifica se a resposta contém dados e o detalhe do ativo
         if (jsonData != null && jsonData.isNotEmpty) {
           final assetDetails = {
-            'averagePrice': jsonData[0]['price'],
             'currentPrice': jsonData[0]['price'],
-            'quantity': 0, // Pode definir um valor padrão ou buscar mais informações
           };
 
           return assetDetails;
@@ -321,10 +323,41 @@ class _AssetListState extends State<AssetList> {
   }
 
   void _addAsset(Asset newAsset) {
-    setState(() {
+    // Verifica se o ativo já existe na lista
+    final existingAsset =
+        assets.firstWhereOrNull((asset) => asset.ticker == newAsset.ticker);
+
+    if (existingAsset != null) {
+      // Atualiza as informações do ativo existente
+      final totalQuantity = existingAsset.quantity + newAsset.quantity;
+      final totalInvested =
+          (existingAsset.averagePrice * existingAsset.quantity) +
+              (newAsset.averagePrice * newAsset.quantity);
+      final updatedAveragePrice = totalInvested / totalQuantity;
+
+      existingAsset.averagePrice = updatedAveragePrice;
+      existingAsset.quantity = totalQuantity;
+
+      // Adiciona uma nova transação
+      existingAsset.addTransaction(Transaction(
+        ticker: newAsset.ticker,
+        amount: newAsset.currentPrice * newAsset.quantity,
+        date: DateTime.now(),
+      ));
+    } else {
+      // Adiciona um novo ativo se ele não existir
+      newAsset.addTransaction(Transaction(
+        ticker: newAsset.ticker,
+        amount: newAsset.currentPrice * newAsset.quantity,
+        date: DateTime.now(),
+      ));
       assets.add(newAsset);
+    }
+
+    setState(() {
       selectedAsset = null;
     });
+
     _saveAssets();
   }
 
@@ -370,22 +403,11 @@ class _AssetListState extends State<AssetList> {
                       },
                     ),
                     TextFormField(
-                      controller: averagePriceController,
-                      keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'Preço Médio'),
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Por favor, insira o Preço Médio';
-                        }
-                        return null;
-                      },
-                    ),
-                    TextFormField(
                       controller: currentPriceController,
                       keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'Preço Atual'),
+                          const TextInputType.numberWithOptions(decimal: true),
+                      decoration:
+                          const InputDecoration(labelText: 'Preço Atual'),
                       validator: (value) {
                         if (value!.isEmpty) {
                           return 'Por favor, insira o Preço Atual';
@@ -396,8 +418,9 @@ class _AssetListState extends State<AssetList> {
                     TextFormField(
                       controller: quantityController,
                       keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'Quantidade'),
+                          const TextInputType.numberWithOptions(decimal: true),
+                      decoration:
+                          const InputDecoration(labelText: 'Quantidade'),
                       validator: (value) {
                         if (value!.isEmpty) {
                           return 'Por favor, insira a Quantidade';
@@ -419,22 +442,20 @@ class _AssetListState extends State<AssetList> {
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       final ticker = tickerController.text.toUpperCase();
-                      final averagePrice =
-                          double.tryParse(averagePriceController.text) ?? 0.0;
                       final currentPrice =
                           double.tryParse(currentPriceController.text) ?? 0.0;
                       final quantity =
                           int.tryParse(quantityController.text) ?? 0;
 
                       if (ticker.isNotEmpty &&
-                          averagePrice > 0 &&
                           currentPrice > 0 &&
                           quantity > 0) {
                         final newAsset = Asset(
                           ticker: ticker,
-                          averagePrice: averagePrice,
+                          averagePrice: currentPrice,
                           currentPrice: currentPrice,
                           quantity: quantity,
+                          transactions: [],
                         );
 
                         _addAsset(newAsset);
@@ -461,14 +482,6 @@ class _AssetListState extends State<AssetList> {
         isAddAssetDialogOpen = false;
       });
     });
-  }
-
-  double get totalGainedOrLost {
-    double totalVariation = 0.0;
-    for (final asset in assets) {
-      totalVariation += asset.totalVariation;
-    }
-    return totalVariation;
   }
 
   Widget _bottomAction(IconData icon, VoidCallback onTap) {
@@ -558,6 +571,14 @@ class _AssetListState extends State<AssetList> {
     return totalCurrent;
   }
 
+  double get totalGainedOrLost {
+    double totalVariation = 0.0;
+    for (final asset in assets) {
+      totalVariation += asset.totalVariation;
+    }
+    return totalVariation;
+  }
+
   navigateToGraphPage(List<Asset> assetList) {
     Navigator.push(
       context,
@@ -614,7 +635,8 @@ class _AssetListState extends State<AssetList> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: isSelected ? Colors.black : Colors.white,
+                                  color:
+                                      isSelected ? Colors.black : Colors.white,
                                 ),
                               ),
                               Row(
@@ -624,7 +646,9 @@ class _AssetListState extends State<AssetList> {
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
-                                      color: isSelected ? Colors.black : Colors.white,
+                                      color: isSelected
+                                          ? Colors.black
+                                          : Colors.white,
                                     ),
                                   ),
                                   const SizedBox(width: 10),
@@ -633,7 +657,9 @@ class _AssetListState extends State<AssetList> {
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
-                                      color: isSelected ? Colors.black : Colors.white,
+                                      color: isSelected
+                                          ? Colors.black
+                                          : Colors.white,
                                     ),
                                   ),
                                 ],
@@ -770,8 +796,17 @@ class _AssetListState extends State<AssetList> {
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _bottomAction(FontAwesomeIcons.clockRotateLeft, () => navigateToGraphPage),
-            _bottomAction(FontAwesomeIcons.chartPie, () => navigateToGraphPage(assets)),
+            _bottomAction(FontAwesomeIcons.clockRotateLeft, () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ExtratoPage(
+                          assets: assets,
+                        )),
+              );
+            }),
+            _bottomAction(
+                FontAwesomeIcons.chartPie, () => navigateToGraphPage(assets)),
             const SizedBox(width: 48.0),
             _bottomAction(FontAwesomeIcons.wallet, () => navigateToGraphPage),
             _bottomAction(Icons.settings, () => navigateToGraphPage),
