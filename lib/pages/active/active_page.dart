@@ -6,6 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class AssetList extends StatefulWidget {
   const AssetList({Key? key}) : super(key: key);
@@ -20,6 +21,8 @@ class _AssetListState extends State<AssetList> {
   Asset? selectedAsset; // Alteração para armazenar apenas um ativo selecionado
   NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
   Color? selectedBackgroundColor = Colors.grey[900];
+  String? selectedAssetCode;
+  List<String> availableAssetCodes = []; // Adicione esta linha para rastrear os códigos de ativos disponíveis
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController tickerController = TextEditingController();
@@ -30,6 +33,7 @@ class _AssetListState extends State<AssetList> {
   @override
   void initState() {
     super.initState();
+    selectedAssetCode = null;
     _loadAssets();
   }
 
@@ -272,6 +276,42 @@ class _AssetListState extends State<AssetList> {
     }
   }
 
+  Future<Map<String, dynamic>?> getAssetDetails(String ticker) async {
+    final apiUrl =
+        'https://financialmodelingprep.com/api/v3/profile/$ticker?apikey=0lkDQ0T5fKjLrjhYZuWZKENjIbogLCxU';
+
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
+
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body);
+
+        // Verifica se a resposta contém dados e o detalhe do ativo
+        if (jsonData != null && jsonData.isNotEmpty) {
+          final assetDetails = {
+            'averagePrice': jsonData[0]['price'],
+            'currentPrice': jsonData[0]['price'],
+            'quantity': 0, // Pode definir um valor padrão ou buscar mais informações
+          };
+
+          return assetDetails;
+        } else {
+          print('Erro: Dados ausentes na resposta JSON');
+        }
+      } else {
+        print(
+            'Falha ao obter detalhes do ativo. Status: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Erro ao obter detalhes do ativo: $error');
+      // Adicione esta linha para propagar a exceção e ver detalhes no console
+      throw error;
+    }
+
+    // Em caso de falha, retorne null ou trate de acordo com sua lógica
+    return null;
+  }
+
   Future<void> _saveAssets() async {
     final prefs = await SharedPreferences.getInstance();
     final assetList =
@@ -287,113 +327,141 @@ class _AssetListState extends State<AssetList> {
     _saveAssets();
   }
 
-  void _showAddAssetDialog(BuildContext context) {
+  void _showAddAssetDialog(BuildContext context) async {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Adicionar Ativo'),
-          content: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                TextFormField(
-                  controller: tickerController,
-                  textCapitalization: TextCapitalization.characters,
-                  decoration: const InputDecoration(labelText: 'Ticker'),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Por favor, insira um Ticker';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: averagePriceController,
-                  keyboardType:
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: const Text('Adicionar Ativo'),
+              content: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    TextFormField(
+                      controller: tickerController,
+                      textCapitalization: TextCapitalization.characters,
+                      decoration: const InputDecoration(labelText: 'Ticker'),
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return 'Por favor, insira um Ticker';
+                        }
+                        return null;
+                      },
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (tickerController.text.isNotEmpty) {
+                          final ticker = tickerController.text.toUpperCase();
+                          final assetDetails = await getAssetDetails(ticker);
+
+                          if (assetDetails != null) {
+                            setState(() {
+                              averagePriceController.text =
+                                  assetDetails['averagePrice'].toString();
+                              currentPriceController.text =
+                                  assetDetails['currentPrice'].toString();
+                              quantityController.text =
+                                  assetDetails['quantity'].toString();
+                            });
+                          } else {
+                            // Tratar caso não encontre os detalhes do ativo
+                          }
+                        }
+                      },
+                      child: const Text('Preencher Detalhes'),
+                    ),
+                    TextFormField(
+                      controller: averagePriceController,
+                      keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Preço Médio'),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Por favor, insira o Preço Médio';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: currentPriceController,
-                  keyboardType:
+                      decoration: const InputDecoration(labelText: 'Preço Médio'),
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return 'Por favor, insira o Preço Médio';
+                        }
+                        return null;
+                      },
+                    ),
+                    TextFormField(
+                      controller: currentPriceController,
+                      keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Preço Atual'),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Por favor, insira o Preço Atual';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: quantityController,
-                  keyboardType:
+                      decoration: const InputDecoration(labelText: 'Preço Atual'),
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return 'Por favor, insira o Preço Atual';
+                        }
+                        return null;
+                      },
+                    ),
+                    TextFormField(
+                      controller: quantityController,
+                      keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Quantidade'),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Por favor, insira a Quantidade';
-                    }
-                    return null;
+                      decoration: const InputDecoration(labelText: 'Quantidade'),
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return 'Por favor, insira a Quantidade';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
                   },
+                  child: const Text('Cancelar'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      final ticker = tickerController.text.toUpperCase();
+                      final averagePrice =
+                          double.tryParse(averagePriceController.text) ?? 0.0;
+                      final currentPrice =
+                          double.tryParse(currentPriceController.text) ?? 0.0;
+                      final quantity =
+                          int.tryParse(quantityController.text) ?? 0;
+
+                      if (ticker.isNotEmpty &&
+                          averagePrice > 0 &&
+                          currentPrice > 0 &&
+                          quantity > 0) {
+                        final newAsset = Asset(
+                          ticker: ticker,
+                          averagePrice: averagePrice,
+                          currentPrice: currentPrice,
+                          quantity: quantity,
+                        );
+
+                        _addAsset(newAsset);
+
+                        averagePriceController.clear();
+                        currentPriceController.clear();
+                        quantityController.clear();
+                        selectedAssetCode = null;
+
+                        Navigator.of(context).pop();
+                      }
+                    }
+                  },
+                  child: const Text('Adicionar'),
                 ),
               ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  final ticker = tickerController.text.toUpperCase();
-                  final averagePrice =
-                      double.tryParse(averagePriceController.text) ?? 0.0;
-                  final currentPrice =
-                      double.tryParse(currentPriceController.text) ?? 0.0;
-                  final quantity = int.tryParse(quantityController.text) ?? 0;
-
-                  if (ticker.isNotEmpty &&
-                      averagePrice > 0 &&
-                      currentPrice > 0 &&
-                      quantity > 0) {
-                    final newAsset = Asset(
-                      ticker: ticker,
-                      averagePrice: averagePrice,
-                      currentPrice: currentPrice,
-                      quantity: quantity,
-                    );
-
-                    _addAsset(newAsset);
-
-                    // Limpe os controladores do formulário
-                    tickerController.clear();
-                    averagePriceController.clear();
-                    currentPriceController.clear();
-                    quantityController.clear();
-
-                  }
-                }
-              },
-              child: const Text('Adicionar'),
-            ),
-          ],
+            );
+          },
         );
       },
     );
   }
+
 
   double get totalGainedOrLost {
     double totalVariation = 0.0;
