@@ -23,7 +23,8 @@ class ExtratoPage extends StatelessWidget {
               children: [
                 ListTile(
                   title: Text('${asset.ticker} - ${asset.quantity} Cotas'),
-                  subtitle: Text('Custo Médio: ${asset.averagePrice.toStringAsFixed(2)}'),
+                  subtitle: Text(
+                      'Custo Médio: ${asset.averagePrice.toStringAsFixed(2)}'),
                 ),
                 // Adicione aqui a lista de transações do ativo
                 ListView.builder(
@@ -33,7 +34,8 @@ class ExtratoPage extends StatelessWidget {
                   itemBuilder: (context, transactionIndex) {
                     final transaction = asset.transactions[transactionIndex];
                     return ListTile(
-                      title: Text('Transação: ${transaction.amount.toStringAsFixed(2)}'),
+                      title: Text(
+                          'Transação: ${transaction.amount.toStringAsFixed(2)}'),
                       subtitle: Text('Data: ${transaction.date.toString()}'),
                     );
                   },

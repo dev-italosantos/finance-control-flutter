@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_investment_control/models/active_model.dart';
-import 'package:flutter_investment_control/pages/active/active_details_page.dart';
+import 'package:flutter_investment_control/pages/active/details/active_details_page.dart';
 import 'package:flutter_investment_control/pages/active/active_page.dart';
-import 'package:flutter_investment_control/pages/active/graph_page.dart';
+import 'package:flutter_investment_control/pages/active/graph/graph_page.dart';
 import 'package:flutter_investment_control/repositories/active_repository.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
