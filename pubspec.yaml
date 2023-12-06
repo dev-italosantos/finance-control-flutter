@@ -41,6 +41,7 @@ dependencies:
   syncfusion_flutter_charts: ^22.2.12
   http: ^1.1.0
   shared_preferences: ^2.2.2
+  file_picker:
   intl:
 
 dev_dependencies:
