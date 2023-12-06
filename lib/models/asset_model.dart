@@ -5,7 +5,8 @@ class Asset {
    double averagePrice;
   final double currentPrice;
    int quantity;
-  final List<Transaction> transactions;
+
+  List<Transaction> transactions;
 
   Asset({
     required this.ticker,
@@ -25,6 +26,7 @@ class Asset {
       'averagePrice': averagePrice,
       'currentPrice': currentPrice,
       'quantity': quantity,
+      'transactions': transactions.map((transaction) => transaction.toJson()).toList(),
     };
   }
 
@@ -34,7 +36,10 @@ class Asset {
       averagePrice: json['averagePrice'],
       currentPrice: json['currentPrice'],
       quantity: json['quantity'],
-      transactions: [],
+      transactions: (json['transactions'] as List<dynamic>?)
+          ?.map((transactionJson) => Transaction.fromJson(transactionJson as Map<String, dynamic>))
+          .toList() ??
+          [],
     );
   }
 
@@ -44,5 +49,10 @@ class Asset {
 
   void addTransaction(Transaction transaction) {
     transactions.add(transaction);
+  }
+
+  // Adicione este setter
+  set setTransactions(List<Transaction> value) {
+    transactions = value;
   }
 }

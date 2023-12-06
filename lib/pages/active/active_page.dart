@@ -275,11 +275,17 @@ class _AssetListState extends State<AssetList> {
     if (assetList != null) {
       setState(() {
         assets.clear();
-        assets
-            .addAll(assetList.map((json) => Asset.fromJson(jsonDecode(json))));
+        assets.addAll(assetList.map((json) {
+          final assetMap = jsonDecode(json);
+          final transactionsList = assetMap['transactions'] != null
+              ? List<Transaction>.from(assetMap['transactions'].map((t) => Transaction.fromJson(t)))
+              : [];
+          return Asset.fromJson(assetMap)..setTransactions = transactionsList.cast<Transaction>();
+        }));
       });
     }
   }
+
 
   Future<Map<String, dynamic>?> getAssetDetails(String ticker) async {
     final apiUrl =
@@ -317,15 +323,19 @@ class _AssetListState extends State<AssetList> {
 
   Future<void> _saveAssets() async {
     final prefs = await SharedPreferences.getInstance();
-    final assetList =
-        assets.map((asset) => jsonEncode(asset.toJson())).toList();
+    final assetList = assets.map((asset) {
+      final assetMap = asset.toJson();
+      assetMap['transactions'] = asset.transactions.map((transaction) => transaction.toJson()).toList();
+      return jsonEncode(assetMap);
+    }).toList();
     await prefs.setStringList('assets', assetList);
   }
+
 
   void _addAsset(Asset newAsset) {
     // Verifica se o ativo já existe na lista
     final existingAsset =
-        assets.firstWhereOrNull((asset) => asset.ticker == newAsset.ticker);
+    assets.firstWhereOrNull((asset) => asset.ticker == newAsset.ticker);
 
     if (existingAsset != null) {
       // Atualiza as informações do ativo existente
@@ -337,13 +347,6 @@ class _AssetListState extends State<AssetList> {
 
       existingAsset.averagePrice = updatedAveragePrice;
       existingAsset.quantity = totalQuantity;
-
-      // Adiciona uma nova transação
-      existingAsset.addTransaction(Transaction(
-        ticker: newAsset.ticker,
-        amount: newAsset.currentPrice * newAsset.quantity,
-        date: DateTime.now(),
-      ));
     } else {
       // Adiciona um novo ativo se ele não existir
       newAsset.addTransaction(Transaction(
