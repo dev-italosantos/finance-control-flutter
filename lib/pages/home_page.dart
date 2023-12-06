@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_investment_control/models/active_model.dart';
-import 'package:flutter_investment_control/pages/active/active_details_page.dart';
+import 'package:flutter_investment_control/pages/active/details/active_details_page.dart';
 import 'package:flutter_investment_control/pages/active/active_page.dart';
+import 'package:flutter_investment_control/pages/active/graph/graph_page.dart';
 import 'package:flutter_investment_control/repositories/active_repository.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
@@ -53,6 +54,15 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  navigateToWalletPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const AssetList(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final tabela = ActiveRepository.tabela;
@@ -66,11 +76,11 @@ class _HomePageState extends State<HomePage> {
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _bottomAction(FontAwesomeIcons.clockRotateLeft),
-            _bottomAction(FontAwesomeIcons.chartPie),
+            _bottomAction(FontAwesomeIcons.clockRotateLeft, navigateToWalletPage),
+            _bottomAction(FontAwesomeIcons.chartPie,  navigateToWalletPage),
             const SizedBox(width: 48.0),
-            _bottomAction(FontAwesomeIcons.wallet),
-            _bottomAction(Icons.settings),
+            _bottomAction(FontAwesomeIcons.wallet, navigateToWalletPage),
+            _bottomAction(Icons.settings, navigateToWalletPage),
           ],
         ),
       ),
@@ -130,28 +140,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _bottomAction(IconData icon) {
+  Widget _bottomAction(IconData icon, VoidCallback onTap) {
     return InkWell(
+      onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Icon(icon),
-      ),
-      onTap: () {
-        // Future.delayed(const Duration(seconds: 1)).then(
-        //   (value) => Navigator.pushReplacement(
-        //     context,
-        //     MaterialPageRoute(
-        //       builder: (context) => const AssetList(),
-        //     ),
-        //   ),
-        // );
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const AssetList(),
-          ),
-        );
-      },
+      )
     );
   }
 }

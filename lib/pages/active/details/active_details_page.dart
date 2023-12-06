@@ -21,18 +21,27 @@ class _ActiveDetalisPageState extends State<ActiveDetalisPage> {
         title: Text(widget.active.name),
         backgroundColor: Colors.black,
       ),
-      body: Column(
-        children: [
-          Divider(),
-          Row(
-            children: [
-              SizedBox(
-                width: 50,
-                child: Image.asset(widget.active.icon),
-              )
-            ],
-          )
-        ]
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          children: [
+
+            Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 50,
+                    child: Image.asset(widget.active.icon),
+                  ),
+                  Container(width: 30,)
+                ],
+              ),
+            )
+          ]
+        ),
       )
     );
   }
