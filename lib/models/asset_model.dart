@@ -1,9 +1,9 @@
 import 'package:flutter_investment_control/models/transaction_model.dart';
 
 class Asset {
-  final String ticker;
+   String ticker;
    double averagePrice;
-  final double currentPrice;
+   double currentPrice;
    int quantity;
 
   List<Transaction> transactions;

@@ -27,6 +27,7 @@ class _AssetListState extends State<AssetList> {
   List<String> availableAssetCodes =
       []; // Adicione esta linha para rastrear os códigos de ativos disponíveis
   bool isAddAssetDialogOpen = false;
+  bool _hideValues = false;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController tickerController = TextEditingController();
@@ -44,12 +45,25 @@ class _AssetListState extends State<AssetList> {
   appBarDynamics() {
     if (selectedAsset == null) {
       return AppBar(
-        title: const Text(
-          'Minha Carteira de Ativos',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.white,
-          ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Minha Carteira de Ativos',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white,
+              ),
+            ),
+            IconButton(
+              icon: Icon(_hideValues ? Icons.visibility_off : Icons.visibility),
+              onPressed: () {
+                setState(() {
+                  _hideValues = !_hideValues;
+                });
+              },
+            ),
+          ],
         ),
         backgroundColor: Colors.black,
       );
@@ -126,7 +140,7 @@ class _AssetListState extends State<AssetList> {
                 TextFormField(
                   controller: averagePriceController,
                   keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(labelText: 'Preço Médio'),
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -138,7 +152,7 @@ class _AssetListState extends State<AssetList> {
                 TextFormField(
                   controller: currentPriceController,
                   keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(labelText: 'Preço Atual'),
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -159,6 +173,18 @@ class _AssetListState extends State<AssetList> {
                     return null;
                   },
                 ),
+                // Adicione os novos campos aqui
+                // Exemplo:
+                // TextFormField(
+                //   controller: tradingCodeController,
+                //   decoration: const InputDecoration(labelText: 'Código de Negociação'),
+                //   validator: (value) {
+                //     if (value!.isEmpty) {
+                //       return 'Por favor, insira o Código de Negociação';
+                //     }
+                //     return null;
+                //   },
+                // ),
               ],
             ),
           ),
@@ -169,6 +195,7 @@ class _AssetListState extends State<AssetList> {
                 averagePriceController.clear();
                 currentPriceController.clear();
                 quantityController.clear();
+                // Limpe os novos controladores aqui
                 Navigator.of(context).pop();
 
                 setState(() {
@@ -180,48 +207,45 @@ class _AssetListState extends State<AssetList> {
             TextButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  // Lógica para editar o ativo
                   final ticker = tickerController.text.toUpperCase();
-                  final averagePrice =
-                      double.tryParse(averagePriceController.text) ?? 0.0;
-                  final currentPrice =
-                      double.tryParse(currentPriceController.text) ?? 0.0;
+                  final averagePrice = double.tryParse(averagePriceController.text) ?? 0.0;
+                  final currentPrice = double.tryParse(currentPriceController.text) ?? 0.0;
                   final quantity = int.tryParse(quantityController.text) ?? 0;
 
-                  if (ticker.isNotEmpty &&
-                      averagePrice > 0 &&
-                      currentPrice > 0 &&
-                      quantity > 0) {
+                  if (ticker.isNotEmpty && averagePrice > 0 && currentPrice > 0 && quantity > 0) {
+                    // Crie um novo objeto Asset com as informações editadas
                     final editedAsset = Asset(
                       ticker: ticker,
                       averagePrice: averagePrice,
                       currentPrice: currentPrice,
                       quantity: quantity,
-                      transactions: [],
+                      transactions: List<Transaction>.from(asset.transactions),
+                      // ... (outros campos do ativo)
                     );
 
-                    // Substitua o ativo antigo pelo ativo editado na lista
+                    // Encontre o índice do ativo na lista
                     final index = assets.indexOf(asset);
+
+                    // Atualize as informações do ativo na lista
                     assets[index] = editedAsset;
 
                     // Salve as alterações
                     _saveAssets();
 
-                    // Recarregue os ativos
-                    _loadAssets();
-
-                    // Limpe os controladores do formulário
+                    // Limpe os controladores
                     tickerController.clear();
                     averagePriceController.clear();
                     currentPriceController.clear();
                     quantityController.clear();
 
-                    // Redefina selectedAsset para null
+                    // Volte para a tela principal
                     setState(() {
                       selectedAsset = null;
                     });
 
-                    // Feche o diálogo
+                    // Recarregue os ativos
+                    _loadAssets();
+
                     Navigator.of(context).pop();
                   }
                 }
@@ -277,9 +301,25 @@ class _AssetListState extends State<AssetList> {
         assets.clear();
         assets.addAll(assetList.map((json) {
           final assetMap = jsonDecode(json);
+
+          // Verifica se 'transactions' existe e não é nulo
           final transactionsList = assetMap['transactions'] != null
-              ? List<Transaction>.from(assetMap['transactions'].map((t) => Transaction.fromJson(t)))
-              : [];
+              ? List<Transaction>.from(assetMap['transactions'].map((t) {
+            return Transaction(
+              date: DateTime.parse(t['date']),
+              ticker: t['ticker'],
+              type: t['type'] == 'buy' ? TransactionType.buy : TransactionType.sell,
+              market: t['market'],
+              maturityDate: DateTime.parse(t['maturityDate']),
+              institution: t['institution'],
+              tradingCode: t['tradingCode'],
+              quantity: t['quantity'],
+              price: t['price'],
+              amount: t['amount'],
+            );
+          }))
+              : []; // Se 'transactions' for nulo ou ausente, inicializa com uma lista vazia
+
           return Asset.fromJson(assetMap)..setTransactions = transactionsList.cast<Transaction>();
         }));
       });
@@ -288,7 +328,8 @@ class _AssetListState extends State<AssetList> {
 
 
   Future<Map<String, dynamic>?> getAssetDetails(String ticker) async {
-    final apiUrl = 'https://brapi.dev/api/quote/$ticker?token=m2VDSqSjN5diYAp5VjZSNv';
+    final apiUrl =
+        'https://brapi.dev/api/quote/$ticker?token=m2VDSqSjN5diYAp5VjZSNv';
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
@@ -297,7 +338,9 @@ class _AssetListState extends State<AssetList> {
         final jsonData = jsonDecode(response.body);
         print('Resposta JSON: $jsonData');
 
-        if (jsonData != null && jsonData['results'] != null && jsonData['results'].isNotEmpty) {
+        if (jsonData != null &&
+            jsonData['results'] != null &&
+            jsonData['results'].isNotEmpty) {
           final assetDetails = {
             'currentPrice': jsonData['results'][0]['regularMarketPrice'] ?? 0.0,
           };
@@ -309,7 +352,8 @@ class _AssetListState extends State<AssetList> {
           return null;
         }
       } else {
-        print('Falha ao obter detalhes do ativo. Status: ${response.statusCode}');
+        print(
+            'Falha ao obter detalhes do ativo. Status: ${response.statusCode}');
         // Adicione lógica para lidar com falhas na resposta do servidor
         return null;
       }
@@ -320,23 +364,30 @@ class _AssetListState extends State<AssetList> {
     }
   }
 
-
-
   Future<void> _saveAssets() async {
     final prefs = await SharedPreferences.getInstance();
     final assetList = assets.map((asset) {
       final assetMap = asset.toJson();
-      assetMap['transactions'] = asset.transactions.map((transaction) => transaction.toJson()).toList();
+      assetMap['transactions'] = asset.transactions.map((transaction) => {
+        'date': transaction.date.toIso8601String(),
+        'ticker': transaction.ticker,
+        'type': transaction.type.toString(), // ou 'buy' conforme necessário
+        'market': transaction.market,
+        'maturityDate': transaction.maturityDate.toIso8601String(),
+        'institution': transaction.institution,
+        'tradingCode': transaction.tradingCode,
+        'quantity': transaction.quantity,
+        'price': transaction.price,
+        'amount': transaction.amount,
+      }).toList();
       return jsonEncode(assetMap);
     }).toList();
     await prefs.setStringList('assets', assetList);
   }
 
-
   void _addAsset(Asset newAsset) {
     // Verifica se o ativo já existe na lista
-    final existingAsset =
-    assets.firstWhereOrNull((asset) => asset.ticker == newAsset.ticker);
+    final existingAsset = assets.firstWhereOrNull((asset) => asset.ticker == newAsset.ticker);
 
     if (existingAsset != null) {
       // Atualiza as informações do ativo existente
@@ -348,13 +399,25 @@ class _AssetListState extends State<AssetList> {
 
       existingAsset.averagePrice = updatedAveragePrice;
       existingAsset.quantity = totalQuantity;
+
+      // Adiciona novas transações sem duplicatas
+      for (Transaction newTransaction in newAsset.transactions) {
+        final existingTransactionIndex = existingAsset.transactions.indexWhere(
+                (transaction) => transaction.date == newTransaction.date);
+
+        if (existingTransactionIndex != -1) {
+          // Atualiza a transação existente
+          final existingTransaction =
+          existingAsset.transactions[existingTransactionIndex];
+
+          existingTransaction.amount += newTransaction.amount;
+        } else {
+          // Adiciona uma nova transação
+          existingAsset.transactions.add(newTransaction);
+        }
+      }
     } else {
       // Adiciona um novo ativo se ele não existir
-      newAsset.addTransaction(Transaction(
-        ticker: newAsset.ticker,
-        amount: newAsset.currentPrice * newAsset.quantity,
-        date: DateTime.now(),
-      ));
       assets.add(newAsset);
     }
 
@@ -438,12 +501,16 @@ class _AssetListState extends State<AssetList> {
               actions: <Widget>[
                 TextButton(
                   onPressed: () {
+                    tickerController.clear();
+                    averagePriceController.clear();
+                    currentPriceController.clear();
+                    quantityController.clear();
                     Navigator.of(context).pop();
                   },
                   child: const Text('Cancelar'),
                 ),
                 TextButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       final ticker = tickerController.text.toUpperCase();
                       final currentPrice =
@@ -454,15 +521,69 @@ class _AssetListState extends State<AssetList> {
                       if (ticker.isNotEmpty &&
                           currentPrice > 0 &&
                           quantity > 0) {
-                        final newAsset = Asset(
-                          ticker: ticker,
-                          averagePrice: currentPrice,
-                          currentPrice: currentPrice,
-                          quantity: quantity,
-                          transactions: [],
-                        );
+                        // Verifica se o ativo já existe na lista
+                        final existingAsset = assets.firstWhereOrNull(
+                            (asset) => asset.ticker == ticker);
 
-                        _addAsset(newAsset);
+                        if (existingAsset != null) {
+                          // Atualiza as informações do ativo existente
+                          final totalQuantity =
+                              existingAsset.quantity + quantity;
+                          final totalInvested = (existingAsset.averagePrice *
+                                  existingAsset.quantity) +
+                              (currentPrice * quantity);
+                          final updatedAveragePrice =
+                              totalInvested / totalQuantity;
+
+                          existingAsset.averagePrice = updatedAveragePrice;
+                          existingAsset.quantity = totalQuantity;
+
+                          // Adiciona uma nova transação ao ativo existente
+                          existingAsset.addTransaction(Transaction(
+                            date: DateTime.now(),
+                            ticker: existingAsset.ticker,
+                            type: TransactionType
+                                .buy, // Ajuste conforme necessário
+                            market: 'Bovespa', // Ajuste conforme necessário
+                            maturityDate: DateTime.now().add(Duration(
+                                days: 30)), // Ajuste conforme necessário
+                            institution:
+                                'Sua Instituição', // Ajuste conforme necessário
+                            tradingCode: 'ABC123', // Ajuste conforme necessário
+                            quantity: existingAsset.quantity,
+                            price: existingAsset.currentPrice,
+                            amount: existingAsset.currentPrice *
+                                existingAsset.quantity,
+                          ));
+                        } else {
+                          // Adiciona um novo ativo se ele não existir
+                          final newAsset = Asset(
+                            ticker: ticker,
+                            averagePrice: currentPrice,
+                            currentPrice: currentPrice,
+                            quantity: quantity,
+                            transactions: [], // Inicialize com uma lista vazia
+                          );
+
+                          // Adiciona uma nova transação ao novo ativo
+                          newAsset.addTransaction(Transaction(
+                            date: DateTime.now(),
+                            ticker: newAsset.ticker,
+                            type: TransactionType
+                                .buy, // Ajuste conforme necessário
+                            market: 'Bovespa', // Ajuste conforme necessário
+                            maturityDate: DateTime.now().add(Duration(
+                                days: 30)), // Ajuste conforme necessário
+                            institution:
+                                'Sua Instituição', // Ajuste conforme necessário
+                            tradingCode: 'ABC123', // Ajuste conforme necessário
+                            quantity: newAsset.quantity,
+                            price: newAsset.currentPrice,
+                            amount: newAsset.currentPrice * newAsset.quantity,
+                          ));
+
+                          _addAsset(newAsset);
+                        }
 
                         tickerController.clear();
                         averagePriceController.clear();
@@ -509,33 +630,40 @@ class _AssetListState extends State<AssetList> {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              _infoRow(
-                title: 'Total Investido',
-                amount: _calculateTotalInvested(),
-              ),
-              const SizedBox(height: 16),
-              _infoRow(
-                title: 'Total Atual',
-                amount: _calculateTotalCurrent(),
-              ),
-              const SizedBox(height: 16),
-              _infoRow(
-                title: 'Total Gained/Lost',
-                amount: totalGainedOrLost,
-                amountColor: totalGainedOrLost >= 0 ? Colors.green : Colors.red,
-              ),
-            ]),
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            _infoRow(
+              title: 'Total Investido',
+              value: real.format(_calculateTotalInvested()),
+            ),
+            const SizedBox(height: 16),
+            _infoRow(
+              title: 'Total Atual',
+              value: real.format(_calculateTotalCurrent()),
+            ),
+            const SizedBox(height: 16),
+            _infoRow(
+              title: 'Total Gained/Lost',
+              value: real.format(totalGainedOrLost),
+              valueColor: totalGainedOrLost >= 0 ? Colors.green : Colors.red,
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _infoRow({
     required String title,
-    required double amount,
-    Color? amountColor,
+    required String value,
+    Color? valueColor,
   }) {
+    if (_hideValues &&
+        ['Custo Médio', 'Preço Médio', 'Rentabilidade'].contains(title)) {
+      return const SizedBox
+          .shrink(); // Oculta os valores numéricos quando _hideValues for verdadeiro
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -547,14 +675,23 @@ class _AssetListState extends State<AssetList> {
           ),
         ),
         const SizedBox(height: 8),
-        Text(
-          'R\$ ${amount.toStringAsFixed(2)}',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: amountColor ?? Colors.white,
-          ),
-        ),
+        !_hideValues
+            ? Text(
+                value,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: valueColor ?? Colors.white,
+                ),
+              )
+            : Text(
+                "R\$",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: valueColor ?? Colors.white,
+                ),
+              ),
       ],
     );
   }
@@ -656,16 +793,27 @@ class _AssetListState extends State<AssetList> {
                                     ),
                                   ),
                                   const SizedBox(width: 10),
-                                  Text(
-                                    real.format(asset.totalAmount),
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: isSelected
-                                          ? Colors.black
-                                          : Colors.white,
-                                    ),
-                                  ),
+                                  !_hideValues
+                                      ? Text(
+                                          real.format(asset.totalAmount),
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: isSelected
+                                                ? Colors.black
+                                                : Colors.white,
+                                          ),
+                                        )
+                                      : Text(
+                                          'R\$',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: isSelected
+                                                ? Colors.black
+                                                : Colors.white,
+                                          ),
+                                        )
                                 ],
                               ),
                             ],
@@ -686,14 +834,24 @@ class _AssetListState extends State<AssetList> {
                                   color: Colors.grey,
                                 ),
                               ),
-                              Text(
-                                real.format(
-                                    asset.averagePrice * asset.quantity),
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
-                                ),
-                              ),
+                              !_hideValues
+                                  ? Text(
+                                      real.format(
+                                          asset.averagePrice * asset.quantity),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey,
+                                      ),
+                                    )
+                                  : Text(
+                                      'R\$',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: isSelected
+                                            ? Colors.black
+                                            : Colors.grey,
+                                      ),
+                                    )
                             ],
                           ),
                           const SizedBox(height: 5),
@@ -707,13 +865,23 @@ class _AssetListState extends State<AssetList> {
                                   color: Colors.grey,
                                 ),
                               ),
-                              Text(
-                                real.format(asset.averagePrice),
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
-                                ),
-                              ),
+                              !_hideValues
+                                  ? Text(
+                                      real.format(asset.averagePrice),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey,
+                                      ),
+                                    )
+                                  : Text(
+                                      'R\$',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: isSelected
+                                            ? Colors.black
+                                            : Colors.grey,
+                                      ),
+                                    )
                             ],
                           ),
                           const SizedBox(height: 5),
@@ -759,15 +927,25 @@ class _AssetListState extends State<AssetList> {
                                     ),
                                   ),
                                   const SizedBox(width: 10),
-                                  Text(
-                                    'R\$ ${asset.totalVariation.toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: asset.totalVariation >= 0
-                                          ? Colors.grey
-                                          : Colors.red,
-                                    ),
-                                  ),
+                                  !_hideValues
+                                      ? Text(
+                                          'R\$ ${asset.totalVariation.toStringAsFixed(2)}',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: asset.totalVariation >= 0
+                                                ? Colors.grey
+                                                : Colors.red,
+                                          ),
+                                        )
+                                      : Text(
+                                          'R\$',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: isSelected
+                                                ? Colors.black
+                                                : Colors.grey,
+                                          ),
+                                        )
                                 ],
                               ),
                             ],

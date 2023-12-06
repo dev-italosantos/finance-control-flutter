@@ -23,20 +23,21 @@ class Transaction {
     required this.amount,
   });
 
-  factory Transaction.fromJson(Map<String, dynamic> json) {
-    return Transaction(
-      date: DateTime.parse(json['date']),
-      ticker: json['ticker'],
-      type: json['type'],
-      market: json['market'],
-      maturityDate: DateTime.parse(json['maturityDate']),
-      institution: json['institution'],
-      tradingCode: json['tradingCode'],
-      quantity: json['quantity'],
-      price: json['price'],
-      amount: json['amount'],
-    );
-  }
+   factory Transaction.fromJson(Map<String, dynamic> json) {
+     return Transaction(
+       date: DateTime.parse(json['date']),
+       ticker: json['ticker'],
+       type: json['type'] == 'buy' ? TransactionType.buy : TransactionType.sell,
+       market: json['market'],
+       maturityDate: DateTime.parse(json['maturityDate']),
+       institution: json['institution'],
+       tradingCode: json['tradingCode'],
+       quantity: json['quantity'],
+       price: json['price'],
+       amount: json['amount'],
+     );
+   }
+
 
   Map<String, dynamic> toJson() {
     return {
