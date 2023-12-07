@@ -326,7 +326,6 @@ class _AssetListState extends State<AssetList> {
     }
   }
 
-
   Future<Map<String, dynamic>?> getAssetDetails(String ticker) async {
     final apiUrl =
         'https://brapi.dev/api/quote/$ticker?token=m2VDSqSjN5diYAp5VjZSNv';

@@ -38,21 +38,20 @@ class Transaction {
      );
    }
 
-
-  Map<String, dynamic> toJson() {
-    return {
-      'date': date.toIso8601String(),
-      'ticker': ticker,
-      'type': type,
-      'market': market,
-      'maturityDate': maturityDate.toIso8601String(),
-      'institution': institution,
-      'tradingCode': tradingCode,
-      'quantity': quantity,
-      'price': price,
-      'amount': amount,
-    };
-  }
+   Map<String, dynamic> toJson() {
+     return {
+       'date': date.toIso8601String(),
+       'ticker': ticker,
+       'type': type.toString().split('.').last, // Convertendo enum para String
+       'market': market,
+       'maturityDate': maturityDate.toIso8601String(),
+       'institution': institution,
+       'tradingCode': tradingCode,
+       'quantity': quantity,
+       'price': price,
+       'amount': amount,
+     };
+   }
 }
 
 // Adicione o enum para o tipo de movimentação
