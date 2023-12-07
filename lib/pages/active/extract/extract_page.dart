@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_investment_control/models/asset_model.dart';
 import 'package:flutter_investment_control/models/transaction_model.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_investment_control/pages/active/extract/allTransactions/all_transactions_page.dart';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -13,7 +14,6 @@ class ExtratoPage extends StatefulWidget {
 
   @override
   _ExtratoPageState createState() => _ExtratoPageState();
-
 }
 
 class _ExtratoPageState extends State<ExtratoPage> {
@@ -45,7 +45,8 @@ class _ExtratoPageState extends State<ExtratoPage> {
   double _extractNumericValue(String valueString) {
     try {
       // Remover espaços e caracteres não numéricos, então converter para double
-      final cleanedValue = double.parse(valueString.replaceAll(RegExp(r'[^\d.]'), ''));
+      final cleanedValue =
+          double.parse(valueString.replaceAll(RegExp(r'[^\d.]'), ''));
       return cleanedValue;
     } catch (e) {
       throw ArgumentError('Erro ao extrair valor numérico: $e');
@@ -68,7 +69,8 @@ class _ExtratoPageState extends State<ExtratoPage> {
 
     if (assetList != null) {
       setState(() {
-        assets = assetList.map((json) => Asset.fromJson(jsonDecode(json))).toList();
+        assets =
+            assetList.map((json) => Asset.fromJson(jsonDecode(json))).toList();
       });
     }
   }
@@ -76,7 +78,8 @@ class _ExtratoPageState extends State<ExtratoPage> {
   // Função para salvar dados
   Future<void> _saveData() async {
     final prefs = await SharedPreferences.getInstance();
-    final assetList = assets.map((asset) => jsonEncode(asset.toJson())).toList();
+    final assetList =
+        assets.map((asset) => jsonEncode(asset.toJson())).toList();
     prefs.setStringList('assets', assetList);
   }
 
@@ -113,7 +116,8 @@ class _ExtratoPageState extends State<ExtratoPage> {
                   print('Lines $lines');
 
                   // Mapear transações por tradingCode
-                  final transactionsByTradingCode = <String, List<Transaction>>{};
+                  final transactionsByTradingCode =
+                      <String, List<Transaction>>{};
 
                   lines.skip(1).forEach((line) {
                     final columns = line.split(',');
@@ -150,27 +154,36 @@ class _ExtratoPageState extends State<ExtratoPage> {
                   });
 
                   // Criar ativos com as transações
-                  final newAssets = transactionsByTradingCode.entries.map((entry) {
+                  transactionsByTradingCode.entries.forEach((entry) {
                     final tradingCode = entry.key;
                     final transactions = entry.value;
 
-                    return Asset(
-                      ticker: tradingCode,
-                      quantity: transactions.fold(0, (sum, transaction) => sum + transaction.quantity),
-                      averagePrice: transactions.fold(0.0, (sum, transaction) => sum + transaction.amount) /
-                          transactions.fold(0, (sum, transaction) => sum + transaction.quantity),
-                      transactions: transactions,
-                      currentPrice: 0.0, // Defina conforme necessário
-                    );
-                  }).toList();
+                    // Verificar se já existe um ativo com o mesmo ticker
+                    final existingAssetIndex = assets.indexWhere((asset) => asset.ticker == tradingCode);
+
+                    if (existingAssetIndex != -1) {
+                      // Se o ativo já existe, atualize apenas as transações ao ativo existente
+                      assets[existingAssetIndex].transactions.addAll(transactions);
+                    } else {
+                      // Se o ativo não existe, crie um novo
+                      final newAsset = Asset(
+                        ticker: tradingCode,
+                        quantity: transactions.fold(0, (sum, transaction) => sum + transaction.quantity),
+                        averagePrice: transactions.fold(0.0, (sum, transaction) => sum + transaction.amount) /
+                            transactions.fold(0, (sum, transaction) => sum + transaction.quantity),
+                        transactions: transactions,
+                        currentPrice: 0.0, // Defina conforme necessário
+                      );
+
+                      // Adicione o novo ativo à lista
+                      assets.add(newAsset);
+                    }
+                  });
 
                   // Atualizar estado da aplicação
                   setState(() {
-                    assets.addAll(newAssets);
+                    // Não precisamos mais da lista newAssets
                   });
-
-                  // Salvar dados
-                  _saveData();
                 } catch (e) {
                   // Lidar com erros
                   print("Erro ao processar o arquivo CSV: $e");
@@ -230,7 +243,9 @@ class _ExtratoPageState extends State<ExtratoPage> {
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: asset.transactions.length > 1 ? 1 : asset.transactions.length,
+                    itemCount: asset.transactions.length > 1
+                        ? 1
+                        : asset.transactions.length,
                     itemBuilder: (context, transactionIndex) {
                       final transaction = asset.transactions[transactionIndex];
                       return Padding(
@@ -277,11 +292,19 @@ class _ExtratoPageState extends State<ExtratoPage> {
                                 color: Colors.grey[600],
                               ),
                             ),
-                            const SizedBox(height: 8), // Aumentei o espaçamento aqui
-                            if (asset.transactions.length > 1 && transactionIndex == 0)
+                            const SizedBox(
+                                height: 8), // Aumentei o espaçamento aqui
+                            if (asset.transactions.length > 1 &&
+                                transactionIndex == 0)
                               GestureDetector(
                                 onTap: () {
-                                  // Implemente a navegação para a tela com todas as transações
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          AllTransactionsPage(asset: asset),
+                                    ),
+                                  );
                                 },
                                 child: Text(
                                   'Ver mais transações...',
@@ -373,7 +396,9 @@ class _ExtratoPageState extends State<ExtratoPage> {
 
   TransactionType _getTypeFromString(String typeString) {
     try {
-      final cleanedString = typeString.trim().toLowerCase(); // Remover espaços e converter para minúsculas
+      final cleanedString = typeString
+          .trim()
+          .toLowerCase(); // Remover espaços e converter para minúsculas
 
       if (cleanedString.contains('compra')) {
         return TransactionType.buy;

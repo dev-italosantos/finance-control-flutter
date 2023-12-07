@@ -1,32 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_investment_control/models/asset_model.dart';
 import 'package:flutter_investment_control/models/transaction_model.dart';
 
 class AllTransactionsPage extends StatelessWidget {
-  final List<Transaction> transactions;
+  final Asset asset;
 
-  AllTransactionsPage({required this.transactions});
+  AllTransactionsPage({required this.asset});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Todas as Transações'),
-      ),
+      appBar: appBarDynamics(),
       body: ListView.builder(
-        itemCount: transactions.length,
+        itemCount: asset.transactions.length,
         itemBuilder: (context, index) {
-          final transaction = transactions[index];
-          return ListTile(
-            title: Text(
-              'Transação: ${transaction.quantity} unidades por ${(transaction.price * transaction.quantity).toStringAsFixed(2)}',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
-              ),
-            ),
-            subtitle: Column(
+          final transaction = asset.transactions[index];
+          return Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  'Transação: ${transaction.quantity} unidades por ${(transaction.price * transaction.quantity).toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Text(
                   'Data: ${transaction.date.toString()}',
@@ -75,4 +75,16 @@ class AllTransactionsPage extends StatelessWidget {
         return 'Venda';
     }
   }
+
+  AppBar appBarDynamics() {
+    return AppBar(
+      backgroundColor: Colors.black,
+      title: Text(
+        '${asset.ticker} selecionado',
+        style: const TextStyle(fontSize: 16, color: Colors.white),
+      ),
+    );
+  }
 }
+
+
