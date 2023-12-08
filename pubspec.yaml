@@ -42,6 +42,8 @@ dependencies:
   http: ^1.1.0
   shared_preferences: ^2.2.2
   file_picker:
+  provider:
+  collection:
   intl:
 
 dev_dependencies:
