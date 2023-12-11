@@ -728,7 +728,9 @@ class _AssetListState extends State<AssetList> {
   double _calculateTotalInvested() {
     double totalInvested = 0.0;
     for (final asset in assets) {
-      totalInvested += asset.averagePrice * asset.quantity;
+      if (!asset.isFullyLiquidated) {
+        totalInvested += asset.averagePrice * asset.quantity;
+      }
     }
     return totalInvested;
   }
@@ -736,7 +738,9 @@ class _AssetListState extends State<AssetList> {
   double _calculateTotalCurrent() {
     double totalCurrent = 0.0;
     for (final asset in assets) {
-      totalCurrent += asset.currentPrice * asset.quantity;
+      if (!asset.isFullyLiquidated) {
+        totalCurrent += asset.currentPrice * asset.quantity;
+      }
     }
     return totalCurrent;
   }
@@ -744,7 +748,9 @@ class _AssetListState extends State<AssetList> {
   double get totalGainedOrLost {
     double totalVariation = 0.0;
     for (final asset in assets) {
-      totalVariation += asset.totalVariation;
+      if (!asset.isFullyLiquidated) {
+        totalVariation += asset.totalVariation;
+      }
     }
     return totalVariation;
   }
@@ -777,111 +783,211 @@ class _AssetListState extends State<AssetList> {
                         itemCount: assets.length,
                         itemBuilder: (context, index) {
                           final asset = assets[index];
-                          final isSelected = selectedAsset ==
-                              asset; // Alteração para verificar se o ativo está selecionado
-                          return Card(
-                            elevation: 4,
-                            margin: const EdgeInsets.all(16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? selectedBackgroundColor
-                                    : Colors.grey[
-                                        900], // Alterado para usar a variável selectedBackgroundColor
+                          final isSelected = selectedAsset == asset;
+
+                          // Filtra os ativos que não estão totalmente liquidados
+                          if (!asset.isFullyLiquidated) {
+                            return Card(
+                              elevation: 4,
+                              margin: const EdgeInsets.all(16),
+                              shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: ListTile(
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(12),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? selectedBackgroundColor
+                                      : Colors.grey[
+                                  900], // Alterado para usar a variável selectedBackgroundColor
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: ListTile(
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(12),
+                                    ),
                                   ),
-                                ),
-                                contentPadding: const EdgeInsets.all(16),
-                                title: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          '${asset.ticker} - ${asset.quantity} Cotas',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: isSelected
-                                                ? Colors.black
-                                                : Colors.white,
-                                          ),
-                                        ),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              '${((asset.totalAmount / _calculateTotalCurrent()) * 100).toStringAsFixed(2)}%',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.bold,
-                                                color: isSelected
-                                                    ? Colors.black
-                                                    : Colors.white,
-                                              ),
+                                  contentPadding: const EdgeInsets.all(16),
+                                  title: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            '${asset.ticker} - ${asset.quantity} Cotas',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: isSelected
+                                                  ? Colors.black
+                                                  : Colors.white,
                                             ),
-                                            const SizedBox(width: 10),
-                                            !_hideValues
-                                                ? Text(
-                                                    real.format(asset.totalAmount),
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: isSelected
-                                                          ? Colors.black
-                                                          : Colors.white,
-                                                    ),
-                                                  )
-                                                : Text(
-                                                    'R\$',
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: isSelected
-                                                          ? Colors.black
-                                                          : Colors.white,
-                                                    ),
-                                                  )
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const SizedBox(height: 5),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Text(
-                                          'Custo Médio',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.grey,
                                           ),
-                                        ),
-                                        !_hideValues
-                                            ? Text(
-                                                real.format(asset.averagePrice *
-                                                    asset.quantity),
-                                                style: const TextStyle(
+                                          Row(
+                                            children: [
+                                              Text(
+                                                '${((asset.totalAmount / _calculateTotalCurrent()) * 100).toStringAsFixed(2)}%',
+                                                style: TextStyle(
                                                   fontSize: 14,
-                                                  color: Colors.grey,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isSelected
+                                                      ? Colors.black
+                                                      : Colors.white,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              !_hideValues
+                                                  ? Text(
+                                                real.format(asset.totalAmount),
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isSelected
+                                                      ? Colors.black
+                                                      : Colors.white,
                                                 ),
                                               )
-                                            : Text(
+                                                  : Text(
+                                                'R\$',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isSelected
+                                                      ? Colors.black
+                                                      : Colors.white,
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  subtitle: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(height: 5),
+                                      Row(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text(
+                                            'Custo Médio',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                          !_hideValues
+                                              ? Text(
+                                            real.format(asset.averagePrice *
+                                                asset.quantity),
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey,
+                                            ),
+                                          )
+                                              : Text(
+                                            'R\$',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: isSelected
+                                                  ? Colors.black
+                                                  : Colors.grey,
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Row(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text(
+                                            'Preço Médio',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                          !_hideValues
+                                              ? Text(
+                                            real.format(asset.averagePrice),
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey,
+                                            ),
+                                          )
+                                              : Text(
+                                            'R\$',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: isSelected
+                                                  ? Colors.black
+                                                  : Colors.grey,
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Row(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text(
+                                            'Última Cotação',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                          Text(
+                                            real.format(asset.currentPrice),
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Row(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                        children: <Widget>[
+                                          const Text(
+                                            'Rentabilidade',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                          Row(
+                                            children: <Widget>[
+                                              Text(
+                                                '${asset.profitability.toStringAsFixed(2)}%',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: asset.profitability >= 0
+                                                      ? Colors.green
+                                                      : Colors.red,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              !_hideValues
+                                                  ? Text(
+                                                'R\$ ${asset.totalVariation.toStringAsFixed(2)}',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color:
+                                                  asset.totalVariation >= 0
+                                                      ? Colors.grey
+                                                      : Colors.red,
+                                                ),
+                                              )
+                                                  : Text(
                                                 'R\$',
                                                 style: TextStyle(
                                                   fontSize: 14,
@@ -890,124 +996,30 @@ class _AssetListState extends State<AssetList> {
                                                       : Colors.grey,
                                                 ),
                                               )
-                                      ],
-                                    ),
-                                    const SizedBox(height: 5),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Text(
-                                          'Preço Médio',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.grey,
+                                            ],
                                           ),
-                                        ),
-                                        !_hideValues
-                                            ? Text(
-                                                real.format(asset.averagePrice),
-                                                style: const TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.grey,
-                                                ),
-                                              )
-                                            : Text(
-                                                'R\$',
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: isSelected
-                                                      ? Colors.black
-                                                      : Colors.grey,
-                                                ),
-                                              )
-                                      ],
-                                    ),
-                                    const SizedBox(height: 5),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Text(
-                                          'Última Cotação',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                        Text(
-                                          real.format(asset.currentPrice),
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 5),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: <Widget>[
-                                        const Text(
-                                          'Rentabilidade',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                        Row(
-                                          children: <Widget>[
-                                            Text(
-                                              '${asset.profitability.toStringAsFixed(2)}%',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: asset.profitability >= 0
-                                                    ? Colors.green
-                                                    : Colors.red,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 10),
-                                            !_hideValues
-                                                ? Text(
-                                                    'R\$ ${asset.totalVariation.toStringAsFixed(2)}',
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      color:
-                                                          asset.totalVariation >= 0
-                                                              ? Colors.grey
-                                                              : Colors.red,
-                                                    ),
-                                                  )
-                                                : Text(
-                                                    'R\$',
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      color: isSelected
-                                                          ? Colors.black
-                                                          : Colors.grey,
-                                                    ),
-                                                  )
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  selected: isSelected,
+                                  onTap: () {
+                                    setState(() {
+                                      selectedAsset = isSelected
+                                          ? null
+                                          : asset; // Seleciona ou deseleciona o ativo
+                                    });
+                                    selectedBackgroundColor = (isSelected
+                                        ? Colors.grey[900]
+                                        : Colors.white)!; // Define a cor desejada
+                                  },
                                 ),
-                                selected: isSelected,
-                                onTap: () {
-                                  setState(() {
-                                    selectedAsset = isSelected
-                                        ? null
-                                        : asset; // Seleciona ou deseleciona o ativo
-                                  });
-                                  selectedBackgroundColor = (isSelected
-                                      ? Colors.grey[900]
-                                      : Colors.white)!; // Define a cor desejada
-                                },
                               ),
-                            ),
-                          );
+                            );
+                          }
+
+                          // Retorna um Container vazio para ativos totalmente liquidados
+                          return Container();
                         },
                       ),
                     ),
