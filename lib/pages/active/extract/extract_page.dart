@@ -52,47 +52,109 @@ class _ExtratoPageState extends State<ExtratoPage> {
     }
   }
 
+  bool isAssetFullyLiquidated(Asset asset) {
+    // Filtra as transações de compra
+    final buyTransactions = asset.transactions
+        .where((transaction) => transaction.type == TransactionType.buy)
+        .toList();
+
+    // Filtra as transações de venda
+    final sellTransactions = asset.transactions
+        .where((transaction) => transaction.type == TransactionType.sell)
+        .toList();
+
+    // Soma os valores comprados e vendidos
+    final buyAmount = buyTransactions.fold(0.0, (sum, transaction) => sum + transaction.amount);
+    final sellAmount = sellTransactions.fold(0.0, (sum, transaction) => sum + transaction.amount);
+
+    // Soma as quantidades compradas e vendidas
+    final buyQuantity = buyTransactions.fold(0, (sum, transaction) => sum + transaction.quantity);
+    final sellQuantity = sellTransactions.fold(0, (sum, transaction) => sum + transaction.quantity);
+
+
+    // Verifica se a quantidade comprada é igual à quantidade vendida ou se só há transações de venda
+    return buyQuantity == sellQuantity || buyQuantity == 0 && sellQuantity > 0 || buyAmount < sellAmount;
+
+  }
+
   @override
   void initState() {
     super.initState();
     _loadData();
   }
 
-  // Future<void> _loadData() async {
-  //   try {
-  //     final prefs = await SharedPreferences.getInstance();
-  //     final assetList = prefs.getStringList('assets');
-  //
-  //     if (assetList != null) {
-  //       final loadedAssets = assetList.map((json) => Asset.fromJson(jsonDecode(json))).toList();
-  //       context.read<AssetProvider>().updateAssets(loadedAssets);
-  //
-  //       setState(() {
-  //         assets = List.from(loadedAssets);
-  //       });
-  //
-  //       // Adicione esta linha para notificar o AssetProvider após atualizar o estado local
-  //       context.read<AssetProvider>().updateAssets(assets);
-  //
-  //     }
-  //   } catch (e) {
-  //     print("Erro ao carregar dados: $e");
-  //   }
-  // }
-
   Future<void> _loadData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final assetList = prefs.getStringList('assets');
+    try {
+      final prefs = await SharedPreferences.getInstance();
 
-    if (assetList != null) {
-      final loadedAssets = assetList.map((json) => Asset.fromJson(jsonDecode(json))).toList();
-      context.read<AssetProvider>().updateAssets(loadedAssets);
+      // Obtenha os ativos diretamente do Provider
+      final List<Asset> loadedAssets = context.read<AssetProvider>().assets;
+
+      // Obtenha os ativos salvos no SharedPreferences
+      final assetList = prefs.getStringList('assets');
+
+      if (assetList != null) {
+        // Adicione os ativos do SharedPreferences apenas se não existirem no Provider
+        final List<Asset> assetsFromPrefs = assetList.map((json) {
+          final assetMap = jsonDecode(json);
+
+          final transactionsList = assetMap['transactions'] != null
+              ? List<Transaction>.from(assetMap['transactions'].map((t) {
+            return Transaction(
+              date: DateTime.parse(t['date']),
+              ticker: t['ticker'],
+              type: t['type'] == 'buy'
+                  ? TransactionType.buy
+                  : TransactionType.sell,
+              market: t['market'],
+              maturityDate: DateTime.parse(t['maturityDate']),
+              institution: t['institution'],
+              tradingCode: t['tradingCode'],
+              quantity: t['quantity'],
+              price: t['price'],
+              amount: t['amount'],
+            );
+          }))
+              : [];
+
+          return Asset.fromJson(assetMap)
+            ..setTransactions = transactionsList.cast<Transaction>();
+        }).toList();
+
+        for (final assetFromPrefs in assetsFromPrefs) {
+          final existingAssetIndex = loadedAssets
+              .indexWhere((asset) => asset.ticker == assetFromPrefs.ticker);
+
+          if (existingAssetIndex == -1) {
+            loadedAssets.add(assetFromPrefs);
+          }
+        }
+      }
 
       setState(() {
-        assets = List.from(loadedAssets);
+        assets.clear();
+        assets.addAll(loadedAssets);
       });
+
+      // Imprima os ativos para análise
+      print('Ativos carregados:');
+      for (final asset in loadedAssets) {
+        print('Ticker: ${asset.ticker}, Quantidade: ${asset.quantity}, Preço Médio: ${asset.averagePrice}');
+        for (final transaction in asset.transactions) {
+          print('   Transação: ${transaction.type}, Quantidade: ${transaction.quantity}, Preço: ${transaction.price}');
+        }
+      }
+
+      // Salve os ativos carregados no SharedPreferences
+      final assetListToSave = loadedAssets.map((asset) => jsonEncode(asset.toJson())).toList();
+      prefs.setStringList('assets', assetListToSave);
+
+      print('Test: $assetListToSave');
+    } catch (e) {
+      print("Erro ao carregar ativos: $e");
     }
   }
+
 
   Future<void> _saveData() async {
     try {
@@ -111,10 +173,22 @@ class _ExtratoPageState extends State<ExtratoPage> {
   }
 
   @override
+  void deactivate() {
+    _saveData();
+    super.deactivate();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadData();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Extrato de Ativos'),
+        title: Text('Extrato de Negociações'),
         backgroundColor: Colors.black,
         actions: [
           IconButton(
@@ -191,11 +265,16 @@ class _ExtratoPageState extends State<ExtratoPage> {
 
                       if (assetDetails != null) {
                         setState(() {
-                          existingAsset.currentPrice = assetDetails['currentPrice'];
+                          existingAsset.currentPrice = assetDetails['currentPrice'].toDouble();
                         });
                       }
 
-                      context.read<AssetProvider>().updateAssets(assets); // Adicione esta linha
+                      // Verificar se o ativo foi completamente liquidado
+                      existingAsset.isFullyLiquidated = isAssetFullyLiquidated(existingAsset);
+
+                      // Atualizar o estado no Provider
+                      context.read<AssetProvider>().updateAssets(assets);
+                      _saveData();
                     } else {
                       final newAsset = Asset(
                         ticker: tradingCode,
@@ -204,26 +283,31 @@ class _ExtratoPageState extends State<ExtratoPage> {
                             transactions.fold(0, (sum, transaction) => sum + transaction.quantity),
                         transactions: transactions,
                         currentPrice: 0.0,
+                        isFullyLiquidated: false,
                       );
-
-                      assets.add(newAsset);
 
                       final assetDetails =
                       await _apiService.getAssetDetails(tradingCode);
 
                       if (assetDetails != null) {
                         setState(() {
-                          newAsset.currentPrice = assetDetails['currentPrice'];
+                          newAsset.currentPrice = assetDetails['currentPrice'].toDouble();
                         });
                       }
+
+                      // Verificar se o ativo foi completamente liquidado
+                      newAsset.isFullyLiquidated = isAssetFullyLiquidated(newAsset);
+
+                      assets.add(newAsset);
+
+                      // Atualizar o estado no Provider
+                      context.read<AssetProvider>().updateAssets(assets);
+                      _saveData();
                     }
-
-                    context.read<AssetProvider>().updateAssets(assets);
                   });
-
-                  setState(() {
-                    // Não precisamos mais da lista newAssets
-                  });
+                  // setState(() {
+                  //   // Não precisamos mais da lista newAssets
+                  // });
                 } catch (e) {
                   print("Erro ao processar o arquivo CSV: $e");
                 }
@@ -236,15 +320,34 @@ class _ExtratoPageState extends State<ExtratoPage> {
       ),
       body: Consumer<AssetProvider>(
         builder: (context, assetProvider, _) {
+          // Ordena os ativos com base na data da transação mais recente
+          assets.forEach((asset) {
+            asset.transactions.sort((a, b) => b.maturityDate.compareTo(a.date));
+          });
+
+          assets.sort((a, b) {
+            DateTime? lastTransactionDateA =
+            a.transactions.isNotEmpty ? a.transactions.first.date : null;
+            DateTime? lastTransactionDateB =
+            b.transactions.isNotEmpty ? b.transactions.first.date : null;
+
+            // Lida com ativos sem transações
+            if (lastTransactionDateA == null && lastTransactionDateB == null) {
+              return 0;
+            } else if (lastTransactionDateA == null) {
+              return 1;
+            } else if (lastTransactionDateB == null) {
+              return -1;
+            }
+
+            // Ordena com base na data mais recente
+            return lastTransactionDateB.compareTo(lastTransactionDateA);
+          });
 
           return ListView.builder(
             itemCount: assets.length,
             itemBuilder: (context, index) {
               final asset = assets[index];
-
-              // Ordenar as transações por data, da mais recente para a mais antiga
-              asset.transactions.sort((a, b) => b.date.compareTo(a.date));
-
               return Card(
                 elevation: 4,
                 margin: const EdgeInsets.all(16),
@@ -289,9 +392,7 @@ class _ExtratoPageState extends State<ExtratoPage> {
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: asset.transactions.length > 1
-                            ? 1
-                            : asset.transactions.length,
+                        itemCount: asset.transactions.length > 1 ? 1 : asset.transactions.length,
                         itemBuilder: (context, transactionIndex) {
                           final transaction = asset.transactions[transactionIndex];
                           return Padding(
@@ -300,8 +401,8 @@ class _ExtratoPageState extends State<ExtratoPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Transação: ${transaction.quantity} unidades por ${(transaction.price * transaction.quantity).toStringAsFixed(2)}',
-                                  style: TextStyle(
+                                  'Transação: ${transaction.quantity} unidades por ${(transaction.price * transaction.quantity.toDouble()).toStringAsFixed(2)}',
+                                  style: const TextStyle(
                                     fontSize: 14,
                                     color: Colors.grey,
                                   ),
@@ -338,10 +439,8 @@ class _ExtratoPageState extends State<ExtratoPage> {
                                     color: Colors.grey[600],
                                   ),
                                 ),
-                                const SizedBox(
-                                    height: 8),
-                                if (asset.transactions.length > 1 &&
-                                    transactionIndex == 0)
+                                const SizedBox(height: 8),
+                                if (asset.transactions.length > 1 && transactionIndex == 0)
                                   GestureDetector(
                                     onTap: () {
                                       Navigator.push(
@@ -366,6 +465,18 @@ class _ExtratoPageState extends State<ExtratoPage> {
                           );
                         },
                       ),
+                      if (asset.isFullyLiquidated == true)
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Text(
+                            'Ativo totalmente liquidado',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.red, // ou outra cor de destaque
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),

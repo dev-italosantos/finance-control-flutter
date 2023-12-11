@@ -229,7 +229,7 @@ class _AssetListState extends State<AssetList> {
                       averagePrice: averagePrice,
                       currentPrice: currentPrice,
                       quantity: quantity,
-                      transactions: List<Transaction>.from(asset.transactions),
+                      transactions: List<Transaction>.from(asset.transactions), isFullyLiquidated: false,
                       // ... (outros campos do ativo)
                     );
 
@@ -287,11 +287,17 @@ class _AssetListState extends State<AssetList> {
                 // Adicione a lógica para excluir o ativo aqui
                 // Você pode acessar as propriedades do ativo usando a instância 'asset'
                 // Remova o ativo da lista e salve as alterações
-                // Após excluir, você pode chamar _loadAssets() para atualizar a lista
                 assets.remove(asset);
                 _saveAssets();
-                _loadAssets();
-                selectedAsset = null;
+
+                // Use o provider para atualizar a lista de ativos
+                context.read<AssetProvider>().updateAssets(assets);
+
+                // Limpe o ativo selecionado
+                setState(() {
+                  selectedAsset = null;
+                });
+
                 Navigator.of(context).pop();
               },
               child: const Text('Excluir'),
@@ -322,21 +328,21 @@ class _AssetListState extends State<AssetList> {
 
           final transactionsList = assetMap['transactions'] != null
               ? List<Transaction>.from(assetMap['transactions'].map((t) {
-                  return Transaction(
-                    date: DateTime.parse(t['date']),
-                    ticker: t['ticker'],
-                    type: t['type'] == 'buy'
-                        ? TransactionType.buy
-                        : TransactionType.sell,
-                    market: t['market'],
-                    maturityDate: DateTime.parse(t['maturityDate']),
-                    institution: t['institution'],
-                    tradingCode: t['tradingCode'],
-                    quantity: t['quantity'],
-                    price: t['price'],
-                    amount: t['amount'],
-                  );
-                }))
+            return Transaction(
+              date: DateTime.parse(t['date']),
+              ticker: t['ticker'],
+              type: t['type'] == 'buy'
+                  ? TransactionType.buy
+                  : TransactionType.sell,
+              market: t['market'],
+              maturityDate: DateTime.parse(t['maturityDate']),
+              institution: t['institution'],
+              tradingCode: t['tradingCode'],
+              quantity: t['quantity'],
+              price: t['price'],
+              amount: t['amount'],
+            );
+          }))
               : [];
 
           return Asset.fromJson(assetMap)
@@ -361,6 +367,16 @@ class _AssetListState extends State<AssetList> {
       setState(() {
         isLoading = false;
       });
+
+      // Imprima os ativos para análise
+      print('Ativos carregados:');
+      for (final asset in loadedAssets) {
+        print('Ticker: ${asset.ticker}, Quantidade: ${asset.quantity}, Preço Médio: ${asset.averagePrice}, Liquidada: ${asset.isFullyLiquidated}');
+        for (final transaction in asset.transactions) {
+          print('   Transação: ${transaction.type}, Quantidade: ${transaction.quantity}, Preço: ${transaction.price}');
+        }
+      }
+      _saveAssets();
     } catch (e) {
       print("Erro ao carregar ativos: $e");
       setState(() {
@@ -368,6 +384,7 @@ class _AssetListState extends State<AssetList> {
       });
     }
   }
+
 
   Future<void> _saveAssets() async {
     final prefs = await SharedPreferences.getInstance();
@@ -573,7 +590,7 @@ class _AssetListState extends State<AssetList> {
                             averagePrice: currentPrice,
                             currentPrice: currentPrice,
                             quantity: quantity,
-                            transactions: [], // Inicialize com uma lista vazia
+                            transactions: [], isFullyLiquidated: false,
                           );
 
                           // Adiciona uma nova transação ao novo ativo
