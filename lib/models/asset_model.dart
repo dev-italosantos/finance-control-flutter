@@ -2,6 +2,7 @@ import 'package:flutter_investment_control/models/transaction_model.dart';
 
 class Asset {
   String ticker;
+  String segment;
   double averagePrice;
   double currentPrice;
   int quantity;
@@ -16,6 +17,7 @@ class Asset {
     required this.quantity,
     required this.transactions,
     required this.isFullyLiquidated,
+    required this.segment
   });
 
   double get totalAmount => currentPrice * quantity;
@@ -25,6 +27,7 @@ class Asset {
   Map<String, dynamic> toJson() {
     return {
       'ticker': ticker,
+      'segment': segment,
       'averagePrice': averagePrice,
       'currentPrice': currentPrice,
       'quantity': quantity,
@@ -36,6 +39,7 @@ class Asset {
   factory Asset.fromJson(Map<String, dynamic> json) {
     return Asset(
       ticker: json['ticker'],
+      segment: json['segment'] as String? ?? '',
       averagePrice: json['averagePrice'],
       currentPrice: json['currentPrice'],
       quantity: json['quantity'],
