@@ -50,11 +50,56 @@ class _GraphPageState extends State<GraphPage> {
     );
   }
 
+  Widget _buildRecommendationChart(List<Asset> assets) {
+    double totalValue = assets.fold(0, (total, asset) => total + asset.currentPrice * asset.quantity);
+    double equalDistribution = totalValue / assets.length;
+
+    return Container(
+      height: 300,
+      margin: EdgeInsets.symmetric(vertical: 16.0),
+      child: PieChart(
+        PieChartData(
+          borderData: FlBorderData(show: false),
+          sectionsSpace: 5,
+          centerSpaceRadius: 50,
+          sections: _getRecommendationSections(assets, equalDistribution, totalValue),
+        ),
+      ),
+    );
+  }
+
+  List<PieChartSectionData> _getRecommendationSections(List<Asset> assets, double equalDistribution, double totalValue) {
+    double percentageOffset = 0.5; // Ajuste este valor conforme necessário
+
+    return List.generate(assets.length, (index) {
+      final isTouched = false; // Você pode ajustar conforme necessário
+      final double fontSize = isTouched ? 20 : 14;
+      final double radius = isTouched ? 90 : 80;
+
+      final double assetValue = assets[index].currentPrice * assets[index].quantity;
+
+      return PieChartSectionData(
+        color: _getColor(index),
+        value: equalDistribution,
+        title: '${assets[index].ticker} ${(equalDistribution / totalValue * 100).toStringAsFixed(2)}%',
+        radius: radius,
+        titleStyle: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.bold,
+          color: const Color(0xffffffff),
+        ),
+        titlePositionPercentageOffset: percentageOffset,
+      );
+    });
+  }
+
+
+// Modifique o método _buildDistributionChart para chamar o novo método
   Widget _buildDistributionChart() {
     double totalCurrent = 0;
 
     final List<Asset> nonLiquidatedAssets =
-        widget.assetList.where((asset) => !asset.isFullyLiquidated).toList();
+    widget.assetList.where((asset) => !asset.isFullyLiquidated).toList();
 
     for (final asset in nonLiquidatedAssets) {
       totalCurrent += asset.currentPrice * asset.quantity;
@@ -63,6 +108,14 @@ class _GraphPageState extends State<GraphPage> {
     return Scaffold(
       body: Column(
         children: [
+          Container(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _buildTickerWidgets(nonLiquidatedAssets, totalCurrent),
+              ),
+            ),
+          ),
           Expanded(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -96,18 +149,70 @@ class _GraphPageState extends State<GraphPage> {
               ],
             ),
           ),
-          Container(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: _buildTickerWidgets(nonLiquidatedAssets, totalCurrent),
-              ),
-            ),
-          ),
+          _buildRecommendationChart(nonLiquidatedAssets), // Adicione o novo gráfico de recomendação
         ],
       ),
     );
   }
+
+  // Widget _buildDistributionChart() {
+  //   double totalCurrent = 0;
+  //
+  //   final List<Asset> nonLiquidatedAssets =
+  //       widget.assetList.where((asset) => !asset.isFullyLiquidated).toList();
+  //
+  //   for (final asset in nonLiquidatedAssets) {
+  //     totalCurrent += asset.currentPrice * asset.quantity;
+  //   }
+  //
+  //   return Scaffold(
+  //     body: Column(
+  //       children: [
+  //         Expanded(
+  //           child: Row(
+  //             mainAxisAlignment: MainAxisAlignment.center,
+  //             children: [
+  //               Expanded(
+  //                 child: PieChart(
+  //                   PieChartData(
+  //                     pieTouchData: PieTouchData(
+  //                       touchCallback: (FlTouchEvent event, pieTouchResponse) {
+  //                         setState(() {
+  //                           if (!event.isInterestedForInteractions ||
+  //                               pieTouchResponse == null ||
+  //                               pieTouchResponse.touchedSection == null) {
+  //                             touchedIndex = -1;
+  //                             return;
+  //                           }
+  //                           touchedIndex = pieTouchResponse
+  //                               .touchedSection!.touchedSectionIndex;
+  //                         });
+  //                       },
+  //                     ),
+  //                     borderData: FlBorderData(
+  //                       show: false,
+  //                     ),
+  //                     sectionsSpace: 5,
+  //                     centerSpaceRadius: 50,
+  //                     sections: _getSections(nonLiquidatedAssets, totalCurrent),
+  //                   ),
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //         Container(
+  //           child: SingleChildScrollView(
+  //             scrollDirection: Axis.horizontal,
+  //             child: Row(
+  //               children: _buildTickerWidgets(nonLiquidatedAssets, totalCurrent),
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   List<Widget> _buildTickerWidgets(List<Asset> assets, double totalCurrent) {
     return assets.asMap().entries.map((entry) {

@@ -159,12 +159,19 @@ class _ExtratoPageState extends State<ExtratoPage> {
   Future<void> _saveData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final assetList = assets.map((asset) => jsonEncode(asset.toJson())).toList();
+
+      // Antes de salvar, remova o "F" do ticker
+      final assetList = assets.map((asset) => jsonEncode({
+        ...asset.toJson(),
+        'ticker': asset.ticker.replaceAll('F', ''),
+      })).toList();
+
       prefs.setStringList('assets', assetList);
     } catch (e) {
       print("Erro ao salvar dados: $e");
     }
   }
+
 
   @override
   void dispose() {
@@ -261,11 +268,12 @@ class _ExtratoPageState extends State<ExtratoPage> {
                       existingAsset.quantity += totalQuantity;
 
                       final assetDetails =
-                      await _apiService.getAssetDetails(tradingCode);
+                      await _apiService.getAssetDetails(tradingCode.replaceAll('F', ''));
 
                       if (assetDetails != null) {
                         setState(() {
                           existingAsset.currentPrice = assetDetails['currentPrice'].toDouble();
+                          existingAsset.segment = assetDetails['segment'].toString();
                         });
                       }
 
@@ -277,17 +285,18 @@ class _ExtratoPageState extends State<ExtratoPage> {
                       _saveData();
                     } else {
                       final newAsset = Asset(
-                        ticker: tradingCode,
+                        ticker: tradingCode.replaceAll('F', ''),
                         quantity: transactions.fold(0, (sum, transaction) => sum + transaction.quantity),
                         averagePrice: transactions.fold(0.0, (sum, transaction) => sum + transaction.amount) /
                             transactions.fold(0, (sum, transaction) => sum + transaction.quantity),
                         transactions: transactions,
                         currentPrice: 0.0,
                         isFullyLiquidated: false,
+                        segment: '',
                       );
 
                       final assetDetails =
-                      await _apiService.getAssetDetails(tradingCode);
+                      await _apiService.getAssetDetails(tradingCode.replaceAll('F', ''));
 
                       if (assetDetails != null) {
                         setState(() {
