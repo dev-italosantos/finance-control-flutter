@@ -3,19 +3,27 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   Future<Map<String, dynamic>?> getAssetDetails(String ticker) async {
-    final apiUrl1 = 'https://brapi.dev/api/quote/$ticker?token=m2VDSqSjN5diYAp5VjZSNv';
-    final apiUrl2 = 'https://mfinance.com.br/api/v1/stocks?symbols=$ticker';
+    final apiUrl1 = 'https://mfinance.com.br/api/v1/stocks?symbols=$ticker';
+    final apiUrl2 = 'https://mfinance.com.br/api/v1/fiis?symbols=$ticker';
+    final apiUrl3 = 'https://brapi.dev/api/quote/$ticker?token=m2VDSqSjN5diYAp5VjZSNv';
 
     try {
       // Tentar obter detalhes do ativo da primeira API
+
       final response1 = await http.get(Uri.parse(apiUrl1));
 
       if (response1.statusCode == 200) {
         final jsonData1 = jsonDecode(response1.body);
 
-        if (jsonData1 != null) {
+        if (jsonData1 != null &&
+            jsonData1['stocks'] != null &&
+            jsonData1['stocks'] is List &&
+            jsonData1['stocks'].isNotEmpty) {
+          final stockDetails = jsonData1['stocks'][0];
           final assetDetails1 = {
-            'currentPrice': jsonData1['results'][0]['regularMarketPrice'] ?? 0.0,
+            'currentPrice': stockDetails['lastPrice'] ?? 0.0,
+            'name': stockDetails['name'] ?? '',
+            'segment': stockDetails['segment'] ?? ''
             // Adicione outros campos conforme necessário
           };
 
@@ -30,10 +38,10 @@ class ApiService {
         final jsonData2 = jsonDecode(response2.body);
 
         if (jsonData2 != null &&
-            jsonData2['stocks'] != null &&
-            jsonData2['stocks'] is List &&
-            jsonData2['stocks'].isNotEmpty) {
-          final stockDetails = jsonData2['stocks'][0];
+            jsonData2['fiis'] != null &&
+            jsonData2['fiis'] is List &&
+            jsonData2['fiis'].isNotEmpty) {
+          final stockDetails = jsonData2['fiis'][0];
           final assetDetails2 = {
             'currentPrice': stockDetails['lastPrice'] ?? 0.0,
             'name': stockDetails['name'] ?? '',
@@ -42,6 +50,21 @@ class ApiService {
           };
 
           return assetDetails2;
+        }
+      }
+
+      final response3= await http.get(Uri.parse(apiUrl3));
+
+      if (response3.statusCode == 200) {
+        final jsonData3 = jsonDecode(response3.body);
+
+        if (jsonData3 != null) {
+          final assetDetails3 = {
+            'currentPrice': jsonData3['results'][0]['regularMarketPrice'] ?? 0.0,
+            // Adicione outros campos conforme necessário
+          };
+
+          return assetDetails3;
         }
       }
 
