@@ -139,7 +139,7 @@ class _ExtratoPageState extends State<ExtratoPage> {
       // Imprima os ativos para análise
       print('Ativos carregados:');
       for (final asset in loadedAssets) {
-        print('Ticker: ${asset.ticker}, Quantidade: ${asset.quantity}, Preço Médio: ${asset.averagePrice}');
+        print('Ticker: ${asset.ticker}, Quantidade: ${asset.quantity}, Preço Médio: ${asset.averagePrice}, Segmento: ${asset.segment}');
         for (final transaction in asset.transactions) {
           print('   Transação: ${transaction.type}, Quantidade: ${transaction.quantity}, Preço: ${transaction.price}');
         }
@@ -155,23 +155,26 @@ class _ExtratoPageState extends State<ExtratoPage> {
     }
   }
 
-
   Future<void> _saveData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // Antes de salvar, remova o "F" do ticker
-      final assetList = assets.map((asset) => jsonEncode({
-        ...asset.toJson(),
-        'ticker': asset.ticker.replaceAll('F', ''),
-      })).toList();
+      // Antes de salvar, remova o "F" do ticker após os números
+      final assetList = assets.map((asset) {
+        final cleanedTicker = asset.ticker.replaceAllMapped(
+            RegExp(r'(\d+)F'), (match) => match.group(1)!);
+
+        return jsonEncode({
+          ...asset.toJson(),
+          'ticker': cleanedTicker,
+        });
+      }).toList();
 
       prefs.setStringList('assets', assetList);
     } catch (e) {
       print("Erro ao salvar dados: $e");
     }
   }
-
 
   @override
   void dispose() {
@@ -249,7 +252,8 @@ class _ExtratoPageState extends State<ExtratoPage> {
                     final transactions = entry.value;
 
                     final existingAssetIndex =
-                    assets.indexWhere((asset) => asset.ticker == tradingCode);
+                    assets.indexWhere((asset) => asset.ticker == tradingCode.replaceAllMapped(
+                        RegExp(r'(\d+)F'), (match) => match.group(1)!));
 
                     if (existingAssetIndex != -1) {
                       final existingAsset = assets[existingAssetIndex];
@@ -268,7 +272,7 @@ class _ExtratoPageState extends State<ExtratoPage> {
                       existingAsset.quantity += totalQuantity;
 
                       final assetDetails =
-                      await _apiService.getAssetDetails(tradingCode.replaceAll('F', ''));
+                      await _apiService.getAssetDetails(tradingCode);
 
                       if (assetDetails != null) {
                         setState(() {
@@ -285,7 +289,8 @@ class _ExtratoPageState extends State<ExtratoPage> {
                       _saveData();
                     } else {
                       final newAsset = Asset(
-                        ticker: tradingCode.replaceAll('F', ''),
+                        ticker: tradingCode.replaceAllMapped(
+                            RegExp(r'(\d+)F'), (match) => match.group(1)!),
                         quantity: transactions.fold(0, (sum, transaction) => sum + transaction.quantity),
                         averagePrice: transactions.fold(0.0, (sum, transaction) => sum + transaction.amount) /
                             transactions.fold(0, (sum, transaction) => sum + transaction.quantity),
@@ -295,12 +300,15 @@ class _ExtratoPageState extends State<ExtratoPage> {
                         segment: '',
                       );
 
+
                       final assetDetails =
-                      await _apiService.getAssetDetails(tradingCode.replaceAll('F', ''));
+                      await _apiService.getAssetDetails(tradingCode.replaceAllMapped(
+                          RegExp(r'(\d+)F'), (match) => match.group(1)!));
 
                       if (assetDetails != null) {
                         setState(() {
                           newAsset.currentPrice = assetDetails['currentPrice'].toDouble();
+                          newAsset.segment = assetDetails['segment'].toString();
                         });
                       }
 

@@ -238,7 +238,7 @@ class _AssetListState extends State<AssetList> {
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
                   final ticker = tickerController.text.toUpperCase();
-                  final segment = segmentController.text.toString() ?? '';
+                  final segment = segmentController.text.toString();
                   final averagePrice =
                       double.tryParse(averagePriceController.text) ?? 0.0;
                   final currentPrice =
@@ -408,7 +408,7 @@ class _AssetListState extends State<AssetList> {
       print('Ativos carregados:');
       for (final asset in loadedAssets) {
         print(
-            'Ticker: ${asset.ticker}, Quantidade: ${asset.quantity}, Preço Médio: ${asset.averagePrice}, Liquidada: ${asset.isFullyLiquidated}');
+            'Ticker: ${asset.ticker}, Quantidade: ${asset.quantity}, Preço Médio: ${asset.averagePrice}, Liquidada: ${asset.isFullyLiquidated}, Segment: ${asset.segment}' );
         for (final transaction in asset.transactions) {
           print(
               '   Transação: ${transaction.type}, Quantidade: ${transaction.quantity}, Preço: ${transaction.price}');
@@ -577,7 +577,7 @@ class _AssetListState extends State<AssetList> {
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       final ticker = tickerController.text.toUpperCase();
-                      final segment = segmentController.text.toString() ?? '';
+                      final segment = segmentController.text.toString();
                       final currentPrice =
                           double.tryParse(currentPriceController.text) ?? 0.0;
                       final quantity =
