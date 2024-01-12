@@ -23,7 +23,8 @@ class ApiService {
           final assetDetails1 = {
             'currentPrice': stockDetails['lastPrice'] ?? 0.0,
             'name': stockDetails['name'] ?? '',
-            'segment': stockDetails['segment'] ?? ''
+            'segment': stockDetails['segment'] ?? '',
+            'activeType': 'stocks',
             // Adicione outros campos conforme necessário
           };
 
@@ -45,7 +46,8 @@ class ApiService {
           final assetDetails2 = {
             'currentPrice': stockDetails['lastPrice'] ?? 0.0,
             'name': stockDetails['name'] ?? '',
-            'segment': stockDetails['segment'] ?? ''
+            'segment': stockDetails['segment'] ?? '',
+            'activeType': 'fii',
             // Adicione outros campos conforme necessário
           };
 

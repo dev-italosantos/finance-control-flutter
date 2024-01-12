@@ -298,6 +298,7 @@ class _ExtratoPageState extends State<ExtratoPage> {
                         currentPrice: 0.0,
                         isFullyLiquidated: false,
                         segment: '',
+                        activeType: '',
                       );
 
 
@@ -309,6 +310,7 @@ class _ExtratoPageState extends State<ExtratoPage> {
                         setState(() {
                           newAsset.currentPrice = assetDetails['currentPrice'].toDouble();
                           newAsset.segment = assetDetails['segment'].toString();
+                          newAsset.activeType = assetDetails['activeType'].toString();
                         });
                       }
 

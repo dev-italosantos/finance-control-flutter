@@ -38,6 +38,7 @@ class _AssetListState extends State<AssetList> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController tickerController = TextEditingController();
   final TextEditingController segmentController = TextEditingController();
+  final TextEditingController activeTypeController = TextEditingController();
   final TextEditingController averagePriceController = TextEditingController();
   final TextEditingController currentPriceController = TextEditingController();
   final TextEditingController quantityController = TextEditingController();
@@ -122,6 +123,7 @@ class _AssetListState extends State<AssetList> {
     // Inicialize os controladores com os valores do ativo selecionado
     tickerController.text = asset.ticker;
     segmentController.text = asset.segment.toString();
+    activeTypeController.text = asset.activeType.toString();
     averagePriceController.text = asset.averagePrice.toString();
     currentPriceController.text = asset.currentPrice.toString();
     quantityController.text = asset.quantity.toString();
@@ -229,16 +231,15 @@ class _AssetListState extends State<AssetList> {
                   selectedAsset = null;
                 });
               },
-              child: const Text('Cancelar',
-              style: TextStyle(
-                color: Colors.black
-              )),
+              child:
+                  const Text('Cancelar', style: TextStyle(color: Colors.black)),
             ),
             TextButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
                   final ticker = tickerController.text.toUpperCase();
                   final segment = segmentController.text.toString();
+                  final activeType = activeTypeController.text.toString();
                   final averagePrice =
                       double.tryParse(averagePriceController.text) ?? 0.0;
                   final currentPrice =
@@ -254,14 +255,15 @@ class _AssetListState extends State<AssetList> {
                       quantity > 0) {
                     // Crie um novo objeto Asset com as informações editadas
                     final editedAsset = Asset(
-                      ticker: ticker,
-                      averagePrice: averagePrice,
-                      currentPrice: currentPrice,
-                      quantity: quantity,
-                      transactions: List<Transaction>.from(asset.transactions),
-                      isFullyLiquidated: liquidationCode,
-                      segment: segment,
-                    );
+                        ticker: ticker,
+                        averagePrice: averagePrice,
+                        currentPrice: currentPrice,
+                        quantity: quantity,
+                        transactions:
+                            List<Transaction>.from(asset.transactions),
+                        isFullyLiquidated: liquidationCode,
+                        segment: segment,
+                        activeType: activeType);
 
                     // Encontre o índice do ativo na lista
                     final index = assets.indexOf(asset);
@@ -408,7 +410,10 @@ class _AssetListState extends State<AssetList> {
       print('Ativos carregados:');
       for (final asset in loadedAssets) {
         print(
-            'Ticker: ${asset.ticker}, Quantidade: ${asset.quantity}, Preço Médio: ${asset.averagePrice}, Liquidada: ${asset.isFullyLiquidated}, Segment: ${asset.segment}' );
+          'Ticker: ${asset.ticker}, Quantidade: ${asset.quantity},'
+              ' Preço Médio: ${asset.averagePrice}, Liquidada: ${asset.isFullyLiquidated},'
+              ' Segment: ${asset.segment}, Type: ${asset.activeType}',
+        );
         for (final transaction in asset.transactions) {
           print(
               '   Transação: ${transaction.type}, Quantidade: ${transaction.quantity}, Preço: ${transaction.price}');
@@ -578,6 +583,7 @@ class _AssetListState extends State<AssetList> {
                     if (_formKey.currentState!.validate()) {
                       final ticker = tickerController.text.toUpperCase();
                       final segment = segmentController.text.toString();
+                      final activeType = activeTypeController.text.toString();
                       final currentPrice =
                           double.tryParse(currentPriceController.text) ?? 0.0;
                       final quantity =
@@ -624,14 +630,14 @@ class _AssetListState extends State<AssetList> {
                         } else {
                           // Adiciona um novo ativo se ele não existir
                           final newAsset = Asset(
-                            ticker: ticker,
-                            averagePrice: currentPrice,
-                            currentPrice: currentPrice,
-                            quantity: quantity,
-                            transactions: [],
-                            isFullyLiquidated: false,
-                            segment: segment
-                          );
+                              ticker: ticker,
+                              averagePrice: currentPrice,
+                              currentPrice: currentPrice,
+                              quantity: quantity,
+                              transactions: [],
+                              isFullyLiquidated: false,
+                              segment: segment,
+                              activeType: activeType);
 
                           // Adiciona uma nova transação ao novo ativo
                           newAsset.addTransaction(Transaction(

@@ -3,6 +3,7 @@ import 'package:flutter_investment_control/models/transaction_model.dart';
 class Asset {
   String ticker;
   String segment;
+  String activeType;
   double averagePrice;
   double currentPrice;
   int quantity;
@@ -12,12 +13,13 @@ class Asset {
 
   Asset({
     required this.ticker,
+    required this.activeType,
+    required this.segment,
     required this.averagePrice,
     required this.currentPrice,
     required this.quantity,
     required this.transactions,
-    required this.isFullyLiquidated,
-    required this.segment
+    required this.isFullyLiquidated
   });
 
   double get totalAmount => currentPrice * quantity;
@@ -28,6 +30,7 @@ class Asset {
     return {
       'ticker': ticker,
       'segment': segment,
+      'activeType': activeType,
       'averagePrice': averagePrice,
       'currentPrice': currentPrice,
       'quantity': quantity,
@@ -40,6 +43,7 @@ class Asset {
     return Asset(
       ticker: json['ticker'],
       segment: json['segment'] as String? ?? '',
+      activeType: json['activeType'] as String ?? '',
       averagePrice: json['averagePrice'],
       currentPrice: json['currentPrice'],
       quantity: json['quantity'],
