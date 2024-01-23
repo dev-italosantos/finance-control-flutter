@@ -25,6 +25,7 @@ class _HomePageState extends State<HomePage> {
           'Ativos de Investimentos',
           style: TextStyle(
             fontSize: 16,
+            color: Colors.white,
           ),
         ),
         backgroundColor: Colors.black,

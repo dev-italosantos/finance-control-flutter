@@ -47,7 +47,7 @@ class ApiService {
             'currentPrice': stockDetails['lastPrice'] ?? 0.0,
             'name': stockDetails['name'] ?? '',
             'segment': stockDetails['segment'] ?? '',
-            'activeType': 'fii',
+            'activeType': 'fiis',
             // Adicione outros campos conforme necessário
           };
 

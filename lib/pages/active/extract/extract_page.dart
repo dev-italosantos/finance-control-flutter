@@ -6,9 +6,10 @@ import 'package:flutter_investment_control/pages/active/extract/allTransactions/
 import 'package:flutter_investment_control/services/api_service.dart';
 import 'package:flutter_investment_control/services/asset_provider.dart';
 import 'package:provider/provider.dart';
-import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:excel/excel.dart' as excelPackage;
 import 'dart:convert';
+import 'dart:io';
 
 class ExtratoPage extends StatefulWidget {
   ExtratoPage({Key? key}) : super(key: key);
@@ -45,7 +46,8 @@ class _ExtratoPageState extends State<ExtratoPage> {
 
   double _extractNumericValue(String valueString) {
     try {
-      final cleanedValue = double.parse(valueString.replaceAll(RegExp(r'[^\d.]'), ''));
+      final cleanedValue =
+          double.parse(valueString.replaceAll(RegExp(r'[^\d.]'), ''));
       return cleanedValue;
     } catch (e) {
       throw ArgumentError('Erro ao extrair valor numérico: $e');
@@ -64,17 +66,21 @@ class _ExtratoPageState extends State<ExtratoPage> {
         .toList();
 
     // Soma os valores comprados e vendidos
-    final buyAmount = buyTransactions.fold(0.0, (sum, transaction) => sum + transaction.amount);
-    final sellAmount = sellTransactions.fold(0.0, (sum, transaction) => sum + transaction.amount);
+    final buyAmount = buyTransactions.fold(
+        0.0, (sum, transaction) => sum + transaction.amount);
+    final sellAmount = sellTransactions.fold(
+        0.0, (sum, transaction) => sum + transaction.amount);
 
     // Soma as quantidades compradas e vendidas
-    final buyQuantity = buyTransactions.fold(0, (sum, transaction) => sum + transaction.quantity);
-    final sellQuantity = sellTransactions.fold(0, (sum, transaction) => sum + transaction.quantity);
-
+    final buyQuantity = buyTransactions.fold(
+        0, (sum, transaction) => sum + transaction.quantity);
+    final sellQuantity = sellTransactions.fold(
+        0, (sum, transaction) => sum + transaction.quantity);
 
     // Verifica se a quantidade comprada é igual à quantidade vendida ou se só há transações de venda
-    return buyQuantity == sellQuantity || buyQuantity == 0 && sellQuantity > 0 || buyAmount < sellAmount;
-
+    return buyQuantity == sellQuantity ||
+        buyQuantity == 0 && sellQuantity > 0 ||
+        buyAmount < sellAmount;
   }
 
   @override
@@ -100,21 +106,21 @@ class _ExtratoPageState extends State<ExtratoPage> {
 
           final transactionsList = assetMap['transactions'] != null
               ? List<Transaction>.from(assetMap['transactions'].map((t) {
-            return Transaction(
-              date: DateTime.parse(t['date']),
-              ticker: t['ticker'],
-              type: t['type'] == 'buy'
-                  ? TransactionType.buy
-                  : TransactionType.sell,
-              market: t['market'],
-              maturityDate: DateTime.parse(t['maturityDate']),
-              institution: t['institution'],
-              tradingCode: t['tradingCode'],
-              quantity: t['quantity'],
-              price: t['price'],
-              amount: t['amount'],
-            );
-          }))
+                  return Transaction(
+                    date: DateTime.parse(t['date']),
+                    ticker: t['ticker'],
+                    type: t['type'] == 'buy'
+                        ? TransactionType.buy
+                        : TransactionType.sell,
+                    market: t['market'],
+                    maturityDate: DateTime.parse(t['maturityDate']),
+                    institution: t['institution'],
+                    tradingCode: t['tradingCode'],
+                    quantity: t['quantity'],
+                    price: t['price'],
+                    amount: t['amount'],
+                  );
+                }))
               : [];
 
           return Asset.fromJson(assetMap)
@@ -139,14 +145,16 @@ class _ExtratoPageState extends State<ExtratoPage> {
       // Imprima os ativos para análise
       print('Ativos carregados:');
       for (final asset in loadedAssets) {
-        print('Ticker: ${asset.ticker}, Quantidade: ${asset.quantity}, Preço Médio: ${asset.averagePrice}, Segmento: ${asset.segment}');
-        for (final transaction in asset.transactions) {
-          print('   Transação: ${transaction.type}, Quantidade: ${transaction.quantity}, Preço: ${transaction.price}');
-        }
+        print(
+            'Ticker: ${asset.ticker}, Quantidade: ${asset.quantity}, Preço Médio: ${asset.averagePrice}, Segmento: ${asset.segment}');
+        // for (final transaction in asset.transactions) {
+        //   print('   Transação: ${transaction.type}, Quantidade: ${transaction.quantity}, Preço: ${transaction.price}');
+        // }
       }
 
       // Salve os ativos carregados no SharedPreferences
-      final assetListToSave = loadedAssets.map((asset) => jsonEncode(asset.toJson())).toList();
+      final assetListToSave =
+          loadedAssets.map((asset) => jsonEncode(asset.toJson())).toList();
       prefs.setStringList('assets', assetListToSave);
 
       print('Test: $assetListToSave');
@@ -161,8 +169,8 @@ class _ExtratoPageState extends State<ExtratoPage> {
 
       // Antes de salvar, remova o "F" do ticker após os números
       final assetList = assets.map((asset) {
-        final cleanedTicker = asset.ticker.replaceAllMapped(
-            RegExp(r'(\d+)F'), (match) => match.group(1)!);
+        final cleanedTicker = asset.ticker
+            .replaceAllMapped(RegExp(r'(\d+)F'), (match) => match.group(1)!);
 
         return jsonEncode({
           ...asset.toJson(),
@@ -198,11 +206,27 @@ class _ExtratoPageState extends State<ExtratoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Extrato de Negociações'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          color: Colors.white, // Defina a cor desejada aqui
+        ),
+        title: const Text(
+          'Extrato de Negociações',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: Colors.black,
         actions: [
           IconButton(
-            icon: Icon(Icons.upload_file),
+            icon: const Icon(
+              Icons.upload_file,
+              color: Colors.white,
+            ),
             onPressed: () async {
               final result = await FilePicker.platform.pickFiles(
                 type: FileType.custom,
@@ -213,7 +237,8 @@ class _ExtratoPageState extends State<ExtratoPage> {
 
                 try {
                   final lines = await File(file.path!).readAsLines();
-                  final transactionsByTradingCode = <String, List<Transaction>>{};
+                  final transactionsByTradingCode =
+                      <String, List<Transaction>>{};
 
                   lines.skip(1).forEach((line) {
                     final columns = line.split(',');
@@ -251,18 +276,19 @@ class _ExtratoPageState extends State<ExtratoPage> {
                     final tradingCode = entry.key;
                     final transactions = entry.value;
 
-                    final existingAssetIndex =
-                    assets.indexWhere((asset) => asset.ticker == tradingCode.replaceAllMapped(
-                        RegExp(r'(\d+)F'), (match) => match.group(1)!));
+                    final existingAssetIndex = assets.indexWhere((asset) =>
+                        asset.ticker ==
+                        tradingCode.replaceAllMapped(
+                            RegExp(r'(\d+)F'), (match) => match.group(1)!));
 
                     if (existingAssetIndex != -1) {
                       final existingAsset = assets[existingAssetIndex];
                       existingAsset.transactions.addAll(transactions);
 
-                      final totalAmount =
-                      transactions.fold(0.0, (sum, transaction) => sum + transaction.amount);
-                      final totalQuantity =
-                      transactions.fold(0, (sum, transaction) => sum + transaction.quantity);
+                      final totalAmount = transactions.fold(
+                          0.0, (sum, transaction) => sum + transaction.amount);
+                      final totalQuantity = transactions.fold(
+                          0, (sum, transaction) => sum + transaction.quantity);
                       final averagePrice = totalAmount / totalQuantity;
 
                       if (totalQuantity > 0) {
@@ -271,18 +297,22 @@ class _ExtratoPageState extends State<ExtratoPage> {
 
                       existingAsset.quantity += totalQuantity;
 
-                      final assetDetails =
-                      await _apiService.getAssetDetails(tradingCode);
+                      final assetDetails = await _apiService.getAssetDetails(
+                          tradingCode.replaceAllMapped(
+                              RegExp(r'(\d+)F'), (match) => match.group(1)!));
 
                       if (assetDetails != null) {
                         setState(() {
-                          existingAsset.currentPrice = assetDetails['currentPrice'].toDouble();
-                          existingAsset.segment = assetDetails['segment'].toString();
+                          existingAsset.currentPrice =
+                              assetDetails['currentPrice'].toDouble();
+                          existingAsset.segment =
+                              assetDetails['segment'].toString();
                         });
                       }
 
                       // Verificar se o ativo foi completamente liquidado
-                      existingAsset.isFullyLiquidated = isAssetFullyLiquidated(existingAsset);
+                      existingAsset.isFullyLiquidated =
+                          isAssetFullyLiquidated(existingAsset);
 
                       // Atualizar o estado no Provider
                       context.read<AssetProvider>().updateAssets(assets);
@@ -291,9 +321,16 @@ class _ExtratoPageState extends State<ExtratoPage> {
                       final newAsset = Asset(
                         ticker: tradingCode.replaceAllMapped(
                             RegExp(r'(\d+)F'), (match) => match.group(1)!),
-                        quantity: transactions.fold(0, (sum, transaction) => sum + transaction.quantity),
-                        averagePrice: transactions.fold(0.0, (sum, transaction) => sum + transaction.amount) /
-                            transactions.fold(0, (sum, transaction) => sum + transaction.quantity),
+                        quantity: transactions.fold(0,
+                            (sum, transaction) => sum + transaction.quantity),
+                        averagePrice: transactions.fold(
+                                0.0,
+                                (sum, transaction) =>
+                                    sum + transaction.amount) /
+                            transactions.fold(
+                                0,
+                                (sum, transaction) =>
+                                    sum + transaction.quantity),
                         transactions: transactions,
                         currentPrice: 0.0,
                         isFullyLiquidated: false,
@@ -301,21 +338,23 @@ class _ExtratoPageState extends State<ExtratoPage> {
                         activeType: '',
                       );
 
-
-                      final assetDetails =
-                      await _apiService.getAssetDetails(tradingCode.replaceAllMapped(
-                          RegExp(r'(\d+)F'), (match) => match.group(1)!));
+                      final assetDetails = await _apiService.getAssetDetails(
+                          tradingCode.replaceAllMapped(
+                              RegExp(r'(\d+)F'), (match) => match.group(1)!));
 
                       if (assetDetails != null) {
                         setState(() {
-                          newAsset.currentPrice = assetDetails['currentPrice'].toDouble();
+                          newAsset.currentPrice =
+                              assetDetails['currentPrice'].toDouble();
                           newAsset.segment = assetDetails['segment'].toString();
-                          newAsset.activeType = assetDetails['activeType'].toString();
+                          newAsset.activeType =
+                              assetDetails['activeType'].toString();
                         });
                       }
 
                       // Verificar se o ativo foi completamente liquidado
-                      newAsset.isFullyLiquidated = isAssetFullyLiquidated(newAsset);
+                      newAsset.isFullyLiquidated =
+                          isAssetFullyLiquidated(newAsset);
 
                       assets.add(newAsset);
 
@@ -346,9 +385,9 @@ class _ExtratoPageState extends State<ExtratoPage> {
 
           assets.sort((a, b) {
             DateTime? lastTransactionDateA =
-            a.transactions.isNotEmpty ? a.transactions.first.date : null;
+                a.transactions.isNotEmpty ? a.transactions.first.date : null;
             DateTime? lastTransactionDateB =
-            b.transactions.isNotEmpty ? b.transactions.first.date : null;
+                b.transactions.isNotEmpty ? b.transactions.first.date : null;
 
             // Lida com ativos sem transações
             if (lastTransactionDateA == null && lastTransactionDateB == null) {
@@ -411,9 +450,12 @@ class _ExtratoPageState extends State<ExtratoPage> {
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: asset.transactions.length > 1 ? 1 : asset.transactions.length,
+                        itemCount: asset.transactions.length > 1
+                            ? 1
+                            : asset.transactions.length,
                         itemBuilder: (context, transactionIndex) {
-                          final transaction = asset.transactions[transactionIndex];
+                          final transaction =
+                              asset.transactions[transactionIndex];
                           return Padding(
                             padding: const EdgeInsets.all(12),
                             child: Column(
@@ -459,7 +501,8 @@ class _ExtratoPageState extends State<ExtratoPage> {
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                if (asset.transactions.length > 1 && transactionIndex == 0)
+                                if (asset.transactions.length > 1 &&
+                                    transactionIndex == 0)
                                   GestureDetector(
                                     onTap: () {
                                       Navigator.push(
@@ -518,9 +561,7 @@ class _ExtratoPageState extends State<ExtratoPage> {
 
   TransactionType _getTypeFromString(String typeString) {
     try {
-      final cleanedString = typeString
-          .trim()
-          .toLowerCase();
+      final cleanedString = typeString.trim().toLowerCase();
 
       if (cleanedString.contains('compra')) {
         return TransactionType.buy;

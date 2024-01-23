@@ -55,6 +55,8 @@ class _AssetListState extends State<AssetList> {
   appBarDynamics() {
     if (selectedAsset == null) {
       return AppBar(
+        automaticallyImplyLeading:
+            false, // Configura para não mostrar a seta de volta
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -66,7 +68,10 @@ class _AssetListState extends State<AssetList> {
               ),
             ),
             IconButton(
-              icon: Icon(_hideValues ? Icons.visibility_off : Icons.visibility),
+              icon: Icon(
+                _hideValues ? Icons.visibility_off : Icons.visibility,
+                color: Colors.white,
+              ),
               onPressed: () {
                 setState(() {
                   _hideValues = !_hideValues;
@@ -79,35 +84,25 @@ class _AssetListState extends State<AssetList> {
       );
     } else {
       return AppBar(
+        automaticallyImplyLeading:
+        false,
         backgroundColor: Colors.black,
         title: Text(
           '${selectedAsset!.ticker} selecionado',
           style: const TextStyle(fontSize: 16, color: Colors.white),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            setState(() {
-              Future.delayed(const Duration(seconds: 1)).then(
-                (value) => Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HomePage(),
-                  ),
-                ),
-              );
-            });
-          },
-        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit),
+            icon: const Icon(
+              Icons.edit,
+              color: Colors.white,
+            ),
             onPressed: () {
               _showEditAssetDialog(context, selectedAsset!);
             },
           ),
           IconButton(
-            icon: const Icon(Icons.delete),
+            icon: const Icon(Icons.delete, color: Colors.white),
             onPressed: () {
               _showDeleteAssetDialog(context, selectedAsset!);
             },
@@ -411,8 +406,8 @@ class _AssetListState extends State<AssetList> {
       for (final asset in loadedAssets) {
         print(
           'Ticker: ${asset.ticker}, Quantidade: ${asset.quantity},'
-              ' Preço Médio: ${asset.averagePrice}, Liquidada: ${asset.isFullyLiquidated},'
-              ' Segment: ${asset.segment}, Type: ${asset.activeType}',
+          ' Preço Médio: ${asset.averagePrice}, Liquidada: ${asset.isFullyLiquidated},'
+          ' Segment: ${asset.segment}, Type: ${asset.activeType}',
         );
         for (final transaction in asset.transactions) {
           print(
@@ -811,6 +806,10 @@ class _AssetListState extends State<AssetList> {
     // Adicione aqui a lógica para navegar para outra tela específica
   }
 
+  void returnToHomePage(BuildContext context) {
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1026,7 +1025,8 @@ class _AssetListState extends State<AssetList> {
                                             const SizedBox(width: 10),
                                             !_hideValues
                                                 ? Text(
-                                                    'R\$ ${asset.totalVariation.toStringAsFixed(2)}',
+                                                    real.format(
+                                                        asset.totalVariation),
                                                     style: TextStyle(
                                                       fontSize: 14,
                                                       color:
@@ -1096,7 +1096,8 @@ class _AssetListState extends State<AssetList> {
             _bottomAction(
                 FontAwesomeIcons.chartPie, () => navigateToGraphPage(assets)),
             const SizedBox(width: 48.0),
-            _bottomAction(FontAwesomeIcons.wallet, () => navigateToGraphPage),
+            _bottomAction(
+                FontAwesomeIcons.house, () => returnToHomePage(context)),
             _bottomAction(Icons.settings, () => navigateToGraphPage),
           ],
         ),
