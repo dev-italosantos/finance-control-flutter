@@ -7,7 +7,7 @@ class ActiveRepository {
       icon: AppIcons.btc,
       name: 'Bitcoin',
       acronym: 'BTC',
-      price: 38816,
+      price: 22777,
     ),
     Active(
       icon: AppIcons.btc,
