@@ -49,6 +49,8 @@ class _GraphPageState extends State<GraphPage> {
               Tab(text: 'Fiis'),
               Tab(text: 'Indices'),
             ],
+            labelColor: Colors.white,
+            indicatorColor: Colors.white,
           ),
         ),
         body: TabBarView(
@@ -103,6 +105,16 @@ class _GraphPageState extends State<GraphPage> {
     return Scaffold(
       body: Column(
         children: [
+          const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text(
+              'Tipo de Ativos',
+              style: TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           Expanded(
             child: PieChart(
               PieChartData(
@@ -131,10 +143,10 @@ class _GraphPageState extends State<GraphPage> {
                     value: fiiPercentage,
                     title: 'FIIs\n${fiiPercentage.toStringAsFixed(2)}%',
                     radius: 80,
-                    titleStyle: TextStyle(
+                    titleStyle: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xffffffff),
+                      color: Color(0xffffffff),
                     ),
                     titlePositionPercentageOffset: 0.5,
                   ),
@@ -143,10 +155,10 @@ class _GraphPageState extends State<GraphPage> {
                     value: stockPercentage,
                     title: 'Ações\n${stockPercentage.toStringAsFixed(2)}%',
                     radius: 80,
-                    titleStyle: TextStyle(
+                    titleStyle: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xffffffff),
+                      color: Color(0xffffffff),
                     ),
                     titlePositionPercentageOffset: 0.5,
                   ),
@@ -154,6 +166,17 @@ class _GraphPageState extends State<GraphPage> {
               ),
             ),
           ),
+          const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text(
+              'Posição Ideal',
+              style: TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          _buildRecommendationChart2(nonLiquidatedAssets)
         ],
       ),
     );
@@ -172,6 +195,16 @@ class _GraphPageState extends State<GraphPage> {
     return Scaffold(
       body: Column(
         children: [
+          const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text(
+              'Posição Atual',
+              style: TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           Container(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -214,6 +247,16 @@ class _GraphPageState extends State<GraphPage> {
               ],
             ),
           ),
+          const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text(
+              'Posição Ideal',
+              style: TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           _buildRecommendationChart(nonLiquidatedAssets),
         ],
       ),
@@ -242,6 +285,16 @@ class _GraphPageState extends State<GraphPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                'Posição Atual',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
             Container(
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -277,8 +330,16 @@ class _GraphPageState extends State<GraphPage> {
                 ),
               ),
             ),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                'Posição Ideal',
+                style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+              ),
+            ),
             _buildRecommendationChart(stockAssets),
             _buildSectorDistributionChart(stockAssets),
+            _getSectorDistributionSections(stockAssets),
           ],
         ),
       ),
@@ -307,12 +368,17 @@ class _GraphPageState extends State<GraphPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Container(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: _buildTickerWidgets(fiiAssets, totalFiiValue),
-                ),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                'Posição Atual',
+                style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+              ),
+            ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _buildTickerWidgets(fiiAssets, totalFiiValue),
               ),
             ),
             Container(
@@ -342,8 +408,16 @@ class _GraphPageState extends State<GraphPage> {
                 ),
               ),
             ),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                'Posição Ideal',
+                style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+              ),
+            ),
             _buildRecommendationChart(fiiAssets),
             _buildSectorDistributionChart(fiiAssets),
+            _getSectorDistributionSections(fiiAssets)
           ],
         ),
       ),
@@ -446,6 +520,114 @@ class _GraphPageState extends State<GraphPage> {
     );
   }
 
+  Widget _getSectorDistributionSections(List<Asset> stockAssets) {
+    // Se não houver ativos de ações, retorna um widget informativo
+    if (stockAssets.isEmpty) {
+      return Center(
+        child: Text('Nenhuma ação encontrada.'),
+      );
+    }
+
+    // Mapeia os ativos de ações por setor
+    Map<String, double> sectorMap = {};
+    stockAssets.forEach((asset) {
+      sectorMap.update(asset.segment, (value) => value + asset.totalAmount,
+          ifAbsent: () => asset.totalAmount);
+    });
+
+    // Calcula o valor total dos ativos de ações
+    double totalStockValue =
+    stockAssets.fold(0, (total, asset) => total + asset.totalAmount);
+
+    // Filtra setores únicos de ativos com valores associados
+    Set<String> uniqueSectors = sectorMap.keys.toSet();
+
+    // Calcula a porcentagem ideal de forma uniforme para cada setor
+    double idealPercentage = 100.0 / uniqueSectors.length;
+
+    // Cria seções para cada setor
+    List<PieChartSectionData> sectors = [];
+    int colorIndex = 0;
+
+    uniqueSectors.forEach((sector) {
+      Color dynamicColor = _getColor(colorIndex);
+
+      // Calcula a porcentagem para o setor específico
+      double percentage = idealPercentage;
+
+      sectors.add(
+        PieChartSectionData(
+          color: dynamicColor,
+          value: percentage,
+          title: '$sector\n${percentage.toStringAsFixed(2)}%',
+          radius: 80,
+          titleStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Color(0xffffffff),
+          ),
+          titlePositionPercentageOffset: 0.5,
+        ),
+      );
+
+      colorIndex++;
+    });
+
+    // Constrói o gráfico de distribuição por setor
+    return Container(
+      height: 400, // Ajuste conforme necessário
+      child: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text(
+              'Posição Ideal',
+              style: TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Container(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _buildSectorNameWidgets(uniqueSectors.toList()),
+              ),
+            ),
+          ),
+          Container(
+            height: 300,
+            child: PieChart(
+              PieChartData(
+                pieTouchData: PieTouchData(
+                  touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                    setState(() {
+                      if (!event.isInterestedForInteractions ||
+                          pieTouchResponse == null ||
+                          pieTouchResponse.touchedSection == null) {
+                        touchedIndex = -1;
+                        return;
+                      }
+                      touchedIndex =
+                          pieTouchResponse.touchedSection!.touchedSectionIndex;
+                    });
+                  },
+                ),
+                borderData: FlBorderData(
+                  show: false,
+                ),
+                sectionsSpace: 5,
+                centerSpaceRadius: 50,
+                sections: sectors,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSectorDistributionChart(List<Asset> stockAssets) {
     // Se não houver ativos de ações, retorna um widget informativo
     if (stockAssets.isEmpty) {
@@ -486,9 +668,19 @@ class _GraphPageState extends State<GraphPage> {
 
     // Constrói o gráfico de distribuição por setor
     return Container(
-      height: 400, // Ajuste conforme necessário
+      height: 377, // Ajuste conforme necessário
       child: Column(
         children: [
+          const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text(
+              'Posição Atual por Setor',
+              style: TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           Container(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -584,6 +776,70 @@ class _GraphPageState extends State<GraphPage> {
         ),
       );
     }).toList();
+  }
+
+  Widget _buildRecommendationChart2(List<Asset> assets) {
+    double totalValue = assets.fold(
+        0, (total, asset) => total + asset.currentPrice * asset.quantity);
+
+    return Container(
+      height: 300,
+      child: PieChart(
+        PieChartData(
+          borderData: FlBorderData(show: false),
+          sectionsSpace: 5,
+          centerSpaceRadius: 50,
+          sections: _getRecommendationSections2(assets, totalValue),
+        ),
+      ),
+    );
+  }
+
+  List<PieChartSectionData> _getRecommendationSections2(
+      List<Asset> assets, double totalValue) {
+
+    Set<String> uniqueTypes = assets
+        .where((asset) => asset.currentPrice * asset.quantity > 0)
+        .map((asset) => asset.activeType)
+        .toSet();
+
+    double idealPercentage = 100.0 / uniqueTypes.length;
+
+    List<PieChartSectionData> sections = [];
+    uniqueTypes.forEach((type) {
+      String friendlyLabel = _getFriendlyLabel(type);
+      Color dynamicColor = _getColor(sections.length);
+
+      sections.add(
+        PieChartSectionData(
+          color: dynamicColor,
+          value: idealPercentage,
+          title: '$friendlyLabel\n${idealPercentage.toStringAsFixed(2)}%',
+          radius: 80,
+          titleStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Color(0xffffffff),
+          ),
+          titlePositionPercentageOffset: 0.5,
+        ),
+      );
+    });
+
+    return sections;
+  }
+
+  String _getFriendlyLabel(String type) {
+    // Mapeia tipos de ativos para rótulos mais amigáveis
+    switch (type) {
+      case 'stocks':
+        return 'Ações';
+      case 'fiis':
+        return 'Fiis';
+    // Adicione outros mapeamentos conforme necessário
+      default:
+        return type;
+    }
   }
 
   List<PieChartSectionData> _getRecommendationSections(
