@@ -7,7 +7,6 @@ import 'package:flutter_investment_control/services/api_service.dart';
 import 'package:flutter_investment_control/services/asset_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:excel/excel.dart' as excelPackage;
 import 'dart:convert';
 import 'dart:io';
 
