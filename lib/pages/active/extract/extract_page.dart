@@ -206,11 +206,11 @@ class _ExtratoPageState extends State<ExtratoPage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pop(context);
           },
-          color: Colors.white, // Defina a cor desejada aqui
+          color: Colors.white,
         ),
         title: const Text(
           'Extrato de Negociações',
