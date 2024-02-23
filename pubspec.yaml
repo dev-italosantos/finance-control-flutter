@@ -40,10 +40,13 @@ dependencies:
   fl_chart: ^0.40.0
   http: ^1.1.0
   shared_preferences: ^2.2.2
+  excel: ^4.0.2
   file_picker:
   provider:
   collection:
   intl:
+  carousel_slider:
+  auto_animated:
 
 dev_dependencies:
   flutter_test:

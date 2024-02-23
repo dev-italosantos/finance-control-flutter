@@ -43,7 +43,7 @@ class Asset {
     return Asset(
       ticker: json['ticker'],
       segment: json['segment'] as String? ?? '',
-      activeType: json['activeType'] as String ?? '',
+      activeType: json['activeType'] as String,
       averagePrice: json['averagePrice'],
       currentPrice: json['currentPrice'],
       quantity: json['quantity'],

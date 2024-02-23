@@ -3,7 +3,6 @@ import 'package:flutter_investment_control/models/asset_model.dart';
 import 'package:flutter_investment_control/models/transaction_model.dart';
 import 'package:flutter_investment_control/pages/active/extract/extract_page.dart';
 import 'package:flutter_investment_control/pages/active/graph/graph_page.dart';
-import 'package:flutter_investment_control/pages/home_page.dart';
 import 'package:flutter_investment_control/services/api_service.dart';
 import 'package:flutter_investment_control/services/asset_provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -55,6 +54,8 @@ class _AssetListState extends State<AssetList> {
   appBarDynamics() {
     if (selectedAsset == null) {
       return AppBar(
+        automaticallyImplyLeading:
+            false, // Configura para não mostrar a seta de volta
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -66,7 +67,11 @@ class _AssetListState extends State<AssetList> {
               ),
             ),
             IconButton(
-              icon: Icon(_hideValues ? Icons.visibility_off : Icons.visibility),
+              icon: Icon(
+                _hideValues ? Icons.visibility_off : Icons.visibility,
+                color: Colors.white,
+                size: 20.0,
+              ),
               onPressed: () {
                 setState(() {
                   _hideValues = !_hideValues;
@@ -79,35 +84,24 @@ class _AssetListState extends State<AssetList> {
       );
     } else {
       return AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.black,
         title: Text(
           '${selectedAsset!.ticker} selecionado',
           style: const TextStyle(fontSize: 16, color: Colors.white),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            setState(() {
-              Future.delayed(const Duration(seconds: 1)).then(
-                (value) => Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HomePage(),
-                  ),
-                ),
-              );
-            });
-          },
-        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit),
+            icon: const Icon(
+              Icons.edit,
+              color: Colors.white,
+            ),
             onPressed: () {
               _showEditAssetDialog(context, selectedAsset!);
             },
           ),
           IconButton(
-            icon: const Icon(Icons.delete),
+            icon: const Icon(Icons.delete, color: Colors.white),
             onPressed: () {
               _showDeleteAssetDialog(context, selectedAsset!);
             },
@@ -134,87 +128,89 @@ class _AssetListState extends State<AssetList> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Editar Ativo'),
-          content: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                TextFormField(
-                  controller: tickerController,
-                  textCapitalization: TextCapitalization.characters,
-                  decoration: const InputDecoration(labelText: 'Ticker'),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Por favor, insira um Ticker';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: averagePriceController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Preço Médio'),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Por favor, insira o Preço Médio';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: currentPriceController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Preço Atual'),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Por favor, insira o Preço Atual';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: quantityController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Quantidade'),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Por favor, insira a Quantidade';
-                    }
-                    return null;
-                  },
-                ),
-                // Adicione os novos campos aqui
-                // Exemplo:
-                DropdownButtonFormField<String>(
-                  value: selectedLiquidationCode,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedLiquidationCode = value as String?;
-                    });
-                  },
-                  items: [
-                    DropdownMenuItem(
-                      value: 'true',
-                      child: Text('Sim'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'false',
-                      child: Text('Não'),
-                    ),
-                  ],
-                  decoration:
-                      InputDecoration(labelText: 'Código de Liquidação'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, selecione uma opção para a flag de liquidação';
-                    }
-                    return null;
-                  },
-                ),
-              ],
+          content: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  TextFormField(
+                    controller: tickerController,
+                    textCapitalization: TextCapitalization.characters,
+                    decoration: const InputDecoration(labelText: 'Ticker'),
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Por favor, insira um Ticker';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: averagePriceController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration: const InputDecoration(labelText: 'Preço Médio'),
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Por favor, insira o Preço Médio';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: currentPriceController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration: const InputDecoration(labelText: 'Preço Atual'),
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Por favor, insira o Preço Atual';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: quantityController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration: const InputDecoration(labelText: 'Quantidade'),
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Por favor, insira a Quantidade';
+                      }
+                      return null;
+                    },
+                  ),
+                  // Adicione os novos campos aqui
+                  // Exemplo:
+                  DropdownButtonFormField<String>(
+                    value: selectedLiquidationCode,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedLiquidationCode = value as String?;
+                      });
+                    },
+                    items: [
+                      DropdownMenuItem(
+                        value: 'true',
+                        child: Text('Sim'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'false',
+                        child: Text('Não'),
+                      ),
+                    ],
+                    decoration:
+                        InputDecoration(labelText: 'Código de Liquidação'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor, selecione uma opção para a flag de liquidação';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
           actions: <Widget>[
@@ -411,8 +407,8 @@ class _AssetListState extends State<AssetList> {
       for (final asset in loadedAssets) {
         print(
           'Ticker: ${asset.ticker}, Quantidade: ${asset.quantity},'
-              ' Preço Médio: ${asset.averagePrice}, Liquidada: ${asset.isFullyLiquidated},'
-              ' Segment: ${asset.segment}, Type: ${asset.activeType}',
+          ' Preço Médio: ${asset.averagePrice}, Liquidada: ${asset.isFullyLiquidated},'
+          ' Segment: ${asset.segment}, Type: ${asset.activeType}',
         );
         for (final transaction in asset.transactions) {
           print(
@@ -689,7 +685,11 @@ class _AssetListState extends State<AssetList> {
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Icon(icon),
+        child: Icon(
+          icon,
+          color: Colors.grey[900],
+          size: 20.0,
+        ),
       ),
     );
   }
@@ -809,6 +809,10 @@ class _AssetListState extends State<AssetList> {
       ),
     );
     // Adicione aqui a lógica para navegar para outra tela específica
+  }
+
+  void returnToHomePage(BuildContext context) {
+    Navigator.pop(context);
   }
 
   @override
@@ -1026,7 +1030,8 @@ class _AssetListState extends State<AssetList> {
                                             const SizedBox(width: 10),
                                             !_hideValues
                                                 ? Text(
-                                                    'R\$ ${asset.totalVariation.toStringAsFixed(2)}',
+                                                    real.format(
+                                                        asset.totalVariation),
                                                     style: TextStyle(
                                                       fontSize: 14,
                                                       color:
@@ -1075,40 +1080,47 @@ class _AssetListState extends State<AssetList> {
                 ],
               );
       }),
-      bottomNavigationBar: BottomAppBar(
-        notchMargin: 8.0,
-        shape: const CircularNotchedRectangle(),
-        child: Row(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _bottomAction(FontAwesomeIcons.clockRotateLeft, () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ExtratoPage(),
-                ),
-              );
+      bottomNavigationBar: SizedBox(
+        height: 70.0,
+        child: BottomAppBar(
+          shape: const CircularNotchedRectangle(),
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _bottomAction(FontAwesomeIcons.clockRotateLeft, () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ExtratoPage(),
+                  ),
+                );
 
-              _loadAssets();
-              // Certifique-se de chamar a função para carregar os ativos
-            }),
-            _bottomAction(
-                FontAwesomeIcons.chartPie, () => navigateToGraphPage(assets)),
-            const SizedBox(width: 48.0),
-            _bottomAction(FontAwesomeIcons.wallet, () => navigateToGraphPage),
-            _bottomAction(Icons.settings, () => navigateToGraphPage),
-          ],
+                _loadAssets();
+              }),
+              _bottomAction(
+                  FontAwesomeIcons.chartPie, () => navigateToGraphPage(assets)),
+              const SizedBox(width: 48.0),
+              _bottomAction(
+                  FontAwesomeIcons.house, () => returnToHomePage(context)),
+              _bottomAction(Icons.settings, () => navigateToGraphPage),
+            ],
+          ),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: !isAddAssetDialogOpen && selectedAsset == null
-          ? FloatingActionButton(
-              backgroundColor: const Color.fromRGBO(150, 150, 150, 1.0),
-              child: const Icon(Icons.add),
-              onPressed: () {
-                _showAddAssetDialog(context);
-              },
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: FloatingActionButton(
+                backgroundColor: Colors.grey,
+                child: const Icon(Icons.add, color: Colors.black),
+                shape: const CircleBorder(),
+                onPressed: () {
+                  _showAddAssetDialog(context);
+                },
+                elevation: 0.0,
+              ),
             )
           : null,
     );

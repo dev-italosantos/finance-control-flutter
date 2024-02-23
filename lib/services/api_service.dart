@@ -44,10 +44,10 @@ class ApiService {
             jsonData2['fiis'].isNotEmpty) {
           final stockDetails = jsonData2['fiis'][0];
           final assetDetails2 = {
-            'currentPrice': stockDetails['lastPrice'] ?? 0.0,
+            'currentPrice': stockDetails['c'] ?? 0.0,
             'name': stockDetails['name'] ?? '',
             'segment': stockDetails['segment'] ?? '',
-            'activeType': 'fii',
+            'activeType': 'fiis',
             // Adicione outros campos conforme necessário
           };
 
