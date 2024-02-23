@@ -10,7 +10,20 @@ class AllTransactionsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: appBarDynamics(),
+      appBar:AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          color: Colors.white, // Defina a cor desejada aqui
+        ),
+        backgroundColor: Colors.black,
+        title: Text(
+          '${asset.ticker} selecionado',
+          style: const TextStyle(fontSize: 16, color: Colors.white),
+        ),
+      ),
       body: ListView.builder(
         itemCount: asset.transactions.length,
         itemBuilder: (context, index) {
@@ -74,16 +87,6 @@ class AllTransactionsPage extends StatelessWidget {
       case TransactionType.sell:
         return 'Venda';
     }
-  }
-
-  AppBar appBarDynamics() {
-    return AppBar(
-      backgroundColor: Colors.black,
-      title: Text(
-        '${asset.ticker} selecionado',
-        style: const TextStyle(fontSize: 16, color: Colors.white),
-      ),
-    );
   }
 }
 
