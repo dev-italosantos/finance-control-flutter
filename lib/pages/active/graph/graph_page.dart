@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_investment_control/models/asset_model.dart';
+import 'package:flutter_investment_control/models/transaction_model.dart';
 
 class GraphPage extends StatefulWidget {
   final List<Asset> assetList;
@@ -23,7 +24,7 @@ class _GraphPageState extends State<GraphPage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 5, // Modificado para incluir o novo Tab
+      length: 6, // Modificado para incluir o novo Tab
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
@@ -47,6 +48,7 @@ class _GraphPageState extends State<GraphPage> {
               Tab(text: 'Ativos'),
               Tab(text: 'Ações'), // Novo Tab para as ações
               Tab(text: 'Fiis'),
+              Tab(text: 'Evolução'),
               Tab(text: 'Indices'),
             ],
             labelColor: Colors.white,
@@ -59,12 +61,146 @@ class _GraphPageState extends State<GraphPage> {
             _buildDistributionChart(),
             _buildStockChart(),
             _buildFiisChart(),
+            _buildMonthlyEvolutionChart(),
             _buildProfitabilityChart(),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildMonthlyEvolutionChart() {
+    // Filtrar os ativos não liquidados
+    final List<Asset> nonLiquidatedAssets =
+    widget.assetList.where((asset) => !asset.isFullyLiquidated).toList();
+
+    // Consolidar todas as transações dos ativos não liquidados
+    final List<Transaction> allTransactions = nonLiquidatedAssets
+        .expand((asset) => asset.transactions)
+        .toList();
+
+    allTransactions.sort((a, b) {
+      if (a.date.year != b.date.year) {
+        return a.date.year.compareTo(b.date.year);
+      }
+      return a.date.month.compareTo(b.date.month);
+    });
+
+// Calcular o saldo acumulado mensal
+    final Map<String, double> monthlyBalances = {};
+
+    for (var transaction in allTransactions) {
+      final String monthYear = '${transaction.date.month}-${transaction.date.year}';
+      monthlyBalances[monthYear] ??= 0;
+      monthlyBalances[monthYear] = (monthlyBalances[monthYear] ?? 0) + transaction.amount;
+    }
+
+    // Extrair meses e anos únicos para criar as barras
+    final List<String> uniqueMonths = monthlyBalances.keys.toList();
+    uniqueMonths.sort(); // Ordenar para garantir a ordem correta no gráfico
+
+    // Criar barras para cada mês
+    final List<BarChartGroupData> barGroups = uniqueMonths.map((monthYear) {
+      return BarChartGroupData(
+        x: uniqueMonths.indexOf(monthYear) + 1,
+        barRods: [
+          BarChartRodData(
+            y: monthlyBalances[monthYear]!,
+            colors: [Colors.blue],
+            width: 8, // Largura da barra
+          ),
+        ],
+      );
+    }).toList();
+
+    // Construir o gráfico de barras
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: BarChart(
+        BarChartData(
+          gridData: FlGridData(show: false),
+          titlesData: FlTitlesData(
+            show: true,
+            leftTitles: SideTitles(showTitles: false),
+            rightTitles: SideTitles(showTitles: false),
+            bottomTitles: SideTitles(
+              showTitles: true,
+              getTextStyles: (context, value) => const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+              margin: 16,
+              rotateAngle: 45,
+              getTitles: (double value) {
+                final index = value.toInt() - 1;
+                if (index >= 0 && index < uniqueMonths.length) {
+                  return uniqueMonths[index];
+                }
+                return '';
+              },
+            ),
+          ),
+          borderData: FlBorderData(show: true),
+          groupsSpace: 16.0, // Espaçamento entre os grupos de barras
+          barGroups: barGroups,
+        ),
+      ),
+    );
+  }
+
+
+  //
+  // Widget _buildMonthlyEvolutionChart() {
+  //   // Filtrar os ativos não liquidados
+  //   final List<Asset> nonLiquidatedAssets =
+  //   widget.assetList.where((asset) => !asset.isFullyLiquidated).toList();
+  //
+  //   // Consolidar todas as transações dos ativos não liquidados
+  //   final List<Transaction> allTransactions = nonLiquidatedAssets
+  //       .expand((asset) => asset.transactions)
+  //       .toList();
+  //
+  //   // Ordenar as transações por data
+  //   allTransactions.sort((a, b) => a.date.compareTo(b.date));
+  //
+  //   // Calcular o saldo acumulado mensal
+  //   final Map<String, double> monthlyBalances = {};
+  //
+  //   for (var transaction in allTransactions) {
+  //     final String monthYear = '${transaction.date.month}-${transaction.date.year}';
+  //     monthlyBalances[monthYear] ??= 0;
+  //     monthlyBalances[monthYear] = (monthlyBalances[monthYear] ?? 0) + transaction.amount;
+  //   }
+  //
+  //   // Extrair meses e anos únicos para criar as barras
+  //   final List<String> uniqueMonths = monthlyBalances.keys.toList();
+  //   uniqueMonths.sort(); // Ordenar para garantir a ordem correta no gráfico
+  //
+  //   // Criar barras para cada mês
+  //   final List<BarChartGroupData> barGroups = uniqueMonths.map((monthYear) {
+  //     return BarChartGroupData(
+  //       x: uniqueMonths.indexOf(monthYear) + 1,
+  //       barRods: [
+  //         BarChartRodData(
+  //           y: monthlyBalances[monthYear]!,
+  //           colors: [Colors.blue],
+  //         ),
+  //       ],
+  //     );
+  //   }).toList();
+  //
+  //   // Construir o gráfico de barras
+  //   return BarChart(
+  //     BarChartData(
+  //       gridData: FlGridData(show: false),
+  //       titlesData: FlTitlesData(show: false),
+  //       borderData: FlBorderData(show: true),
+  //       groupsSpace: 4.0,
+  //       barGroups: barGroups,
+  //     ),
+  //   );
+  // }
 
   Widget _buildCurrentPositionChart() {
     // Filtra apenas os ativos não totalmente liquidados

@@ -45,6 +45,8 @@ dependencies:
   provider:
   collection:
   intl:
+  carousel_slider:
+  auto_animated:
 
 dev_dependencies:
   flutter_test:
