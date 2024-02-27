@@ -47,6 +47,8 @@ dependencies:
   intl:
   carousel_slider:
   auto_animated:
+  shimmer: ^2.0.0
+  cached_network_image: ^3.1.0
 
 dev_dependencies:
   flutter_test:
