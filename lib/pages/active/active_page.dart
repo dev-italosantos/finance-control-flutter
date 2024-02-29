@@ -62,7 +62,7 @@ class _AssetListState extends State<AssetList> {
             const Text(
               'Minha Carteira de Ativos',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 18,
                 color: Colors.white,
               ),
             ),
