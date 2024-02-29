@@ -206,7 +206,7 @@ class _HomePageState extends State<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Padding(
-                  padding: EdgeInsets.only(left: 18.0, top: 8.0, bottom: 8.0),
+                  padding: EdgeInsets.only(left: 16.0, top: 8.0, bottom: 8.0),
                   child: Text(
                     'New',
                     style: TextStyle(
@@ -301,7 +301,7 @@ class _HomePageState extends State<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: EdgeInsets.only(left: 18.0, top: 8.0, bottom: 8.0),
+                  padding: EdgeInsets.only(left: 16.0, top: 8.0, bottom: 8.0),
                   child: const Text(
                     'Stocks',
                     style: TextStyle(
