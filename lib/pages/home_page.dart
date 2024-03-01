@@ -20,14 +20,14 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<Active> selecionadas = [];
-  List<dynamic> filteredStocks =
+  List<Active> filteredStocks =
       []; // Adicione esta linha para declarar filteredStocks
   String searchText =
       ''; // Variável de estado para armazenar o texto de pesquisa
   NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
 
   StockIndicatorsApi api = StockIndicatorsApi();
-  List<dynamic> stockIndicators = [];
+  List<Active> stockIndicators = [];
 
   final PageController _controller = PageController();
   int _currentPage = 0;
@@ -90,9 +90,17 @@ class _HomePageState extends State<HomePage> {
   fetchData() async {
     var data = await api.fetchStockIndicators();
 
-    filteredStocks = List.from(data);
+    // Converta os elementos de data para objetos do tipo Active
+
+    filteredStocks = data.map((item) => Active(
+      icon: AppIcons.btc,
+      name: item['name'],
+      symbol: item['symbol'],
+      lastPrice: item['lastPrice'].toDouble(), // Converter explicitamente para double
+    )).toList();
+
     setState(() {
-      stockIndicators = data;
+      stockIndicators = filteredStocks;
     });
   }
 
@@ -351,11 +359,7 @@ class _HomePageState extends State<HomePage> {
                         child: TextField(
                           onChanged: (value) {
                             setState(() {
-                              filteredStocks = stockIndicators
-                                  .where((stock) => stock['symbol']
-                                      .toLowerCase()
-                                      .contains(value.toLowerCase()))
-                                  .toList();
+                              filteredStocks = stockIndicators;
                             });
                           },
                           decoration: InputDecoration(
@@ -411,7 +415,7 @@ class _HomePageState extends State<HomePage> {
                                       child: Image.asset(AppIcons.btc),
                                     ),
                               title: Text(
-                                filteredStocks[active]['symbol'],
+                                filteredStocks[active].symbol,
                                 style: const TextStyle(
                                   color: Colors.black54,
                                   fontSize: 17.0,
@@ -420,7 +424,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                               trailing: Text(
                                 real.format(
-                                    filteredStocks[active]['lastPrice']),
+                                    filteredStocks[active].lastPrice),
                               ),
                               selected: isSelected,
                               tileColor: isSelected ? Colors.red : null,
