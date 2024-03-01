@@ -29,7 +29,7 @@ class _ActiveDetalisPageState extends State<ActiveDetalisPage> {
           color: Colors.white,
         ),
         title: Text(
-          widget.active.name,
+          widget.active.symbol,
           style: TextStyle(
             color: Colors.white,
           ),
@@ -54,7 +54,7 @@ class _ActiveDetalisPageState extends State<ActiveDetalisPage> {
                     width: 30,
                   ),
                   Text(
-                    real.format(widget.active.price),
+                    real.format(widget.active.lastPrice),
                     style: TextStyle(
                       fontSize: 26.0,
                       fontWeight: FontWeight.w600,
