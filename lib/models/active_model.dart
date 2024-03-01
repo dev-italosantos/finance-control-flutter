@@ -1,13 +1,13 @@
 class Active {
   String icon;
   String name;
-  String acronym;
-  double price;
+  String symbol;
+  double lastPrice;
 
   Active({
     required this.icon,
     required this.name,
-    required this.acronym,
-    required this.price
+    required this.symbol,
+    required this.lastPrice
   });
 }
