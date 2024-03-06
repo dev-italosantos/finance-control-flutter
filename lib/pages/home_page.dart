@@ -89,14 +89,16 @@ class _HomePageState extends State<HomePage> {
 
   fetchData() async {
     var data = await api.fetchStockIndicators();
-
-    // Converta os elementos de data para objetos do tipo Active
-
     filteredStocks = data.map((item) => Active(
       icon: AppIcons.btc,
       name: item['name'],
       symbol: item['symbol'],
-      lastPrice: item['lastPrice'].toDouble(), // Converter explicitamente para double
+      lastPrice: item['lastPrice'].toDouble(),
+      sector: item['sector'],
+      segment: item['segment'],
+      dividendYield: item['dividendYield'].toDouble(),
+      lastYearHigh: item['lastYearHigh'].toDouble(),
+      lastYearLow: item['lastYearLow'].toDouble()
     )).toList();
 
     setState(() {
@@ -107,7 +109,7 @@ class _HomePageState extends State<HomePage> {
   AppBar appBarDynamics() {
     if (selecionadas.isEmpty) {
       return AppBar(
-        title: Text(
+        title: const Text(
           'worthy',
           style: TextStyle(
             fontSize: 18,
@@ -118,7 +120,7 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.black,
         actions: [
           IconButton(
-            icon: Icon(
+            icon: const Icon(
               Icons.favorite, // Ícone de notificação
               color: Colors.white,
               size: 20.0,
@@ -128,7 +130,7 @@ class _HomePageState extends State<HomePage> {
             },
           ),
           IconButton(
-            icon: Icon(
+            icon: const Icon(
               Icons.notifications, // Ícone de notificação
               color: Colors.white,
               size: 20.0,
@@ -315,7 +317,7 @@ class _HomePageState extends State<HomePage> {
                                         child: Text(
                                           newsList[index]['title'],
                                           textAlign: TextAlign.center,
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                               fontSize: 16.0,
                                               color: Colors.white),
                                         ),
@@ -359,22 +361,28 @@ class _HomePageState extends State<HomePage> {
                         child: TextField(
                           onChanged: (value) {
                             setState(() {
-                              filteredStocks = stockIndicators;
+                              searchText = value.toLowerCase(); // Converta o texto de pesquisa para minúsculas
+                              filteredStocks = stockIndicators.where((active) =>
+                              active.symbol.toLowerCase().contains(searchText) || // Verifique se o símbolo contém o texto de pesquisa
+                                  active.name.toLowerCase().contains(searchText) || // Verifique se o nome contém o texto de pesquisa
+                                  active.sector.toLowerCase().contains(searchText) || // Verifique se o setor contém o texto de pesquisa
+                                  active.segment.toLowerCase().contains(searchText) // Verifique se o segmento contém o texto de pesquisa
+                              ).toList();
                             });
                           },
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             hintText: 'search',
                             border: InputBorder.none,
                           ),
                         ),
                       ),
-                      Icon(Icons.search, color: Colors.grey),
+                      const Icon(Icons.search, color: Colors.grey),
                     ],
                   ),
                 ),
                 Expanded(
                   child: FutureBuilder(
-                    future: Future.delayed(Duration(seconds: 3), () {}),
+                    future: Future.delayed(const Duration(seconds: 3), () {}),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         // Exibe shimmer enquanto aguarda
