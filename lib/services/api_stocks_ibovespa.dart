@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-class StockIndicatorsApi {
+class StockIbovespaApi {
   // final String apiUrl = "https://mfinance.com.br/api/v1/stocks/indicators";
   final String apiUrl = "https://mfinance.com.br/api/v1/stocks";
 
