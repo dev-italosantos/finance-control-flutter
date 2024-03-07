@@ -23,35 +23,52 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
       if (response != null) {
         List<dynamic> historicals = response['historicals'] as List<dynamic>;
 
-        // Filtrar os preços para o mês atual
+        // Obter a data de hoje e o primeiro dia do mês passado
         DateTime now = DateTime.now();
-        DateTime firstDayOfMonth = DateTime(now.year, now.month, 1);
-        DateTime lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+        DateTime firstDayOfLastMonth = DateTime(now.year, now.month - 1, 1);
 
-        List<double> prices = historicals
+        // Filtrar os preços para o último mês
+        List<double> pricesLastMonth = historicals
             .where((historical) {
           DateTime date = DateTime.parse(historical['date']);
-          return date.isAfter(firstDayOfMonth.subtract(Duration(days: 1))) &&
-              date.isBefore(lastDayOfMonth.add(Duration(days: 1)));
+          return date.isAfter(firstDayOfLastMonth.subtract(Duration(days: 1))) &&
+              date.isBefore(now);
         })
             .map<double>((historical) => double.parse(historical['close'].toString()))
             .toList();
 
-        // Verificar se há preços disponíveis para o mês atual
-        double returnCurrentMonth = 0.0;
-        if (prices.isNotEmpty) {
+        // Verificar se há preços disponíveis para o último mês
+        double returnLastMonth = 0.0;
+        if (pricesLastMonth.isNotEmpty) {
           // Obter o primeiro e o último preço de fechamento disponíveis
-          double firstDayClosingPrice = prices.first;
-          double lastDayClosingPrice = prices.last;
+          double firstDayClosingPrice = pricesLastMonth.first;
+          double lastDayClosingPrice = pricesLastMonth.last;
 
-          // Calcular a rentabilidade para o mês atual
-          returnCurrentMonth = ((lastDayClosingPrice - firstDayClosingPrice) / firstDayClosingPrice) * 100;
+          // Calcular a rentabilidade para o último mês
+          returnLastMonth = ((lastDayClosingPrice - firstDayClosingPrice) / firstDayClosingPrice) * 100;
         }
 
         // Calcular a rentabilidade para os últimos 12 meses
-        double returnLast12Months = ((widget.active.lastPrice - widget.active.lastYearLow) / widget.active.lastYearLow) * 100;
+        DateTime twelveMonthsAgo = DateTime.now().subtract(Duration(days: 365));
+        List<double> pricesLast12Months = historicals
+            .where((historical) {
+          DateTime date = DateTime.parse(historical['date']);
+          return date.isAfter(twelveMonthsAgo.subtract(Duration(days: 1)));
+        })
+            .map<double>((historical) => double.parse(historical['close'].toString()))
+            .toList();
 
-        return [returnCurrentMonth, returnLast12Months];
+        double returnLast12Months = 0.0;
+        if (pricesLast12Months.isNotEmpty) {
+          // Obter o primeiro e o último preço de fechamento dos últimos 12 meses
+          double firstPriceLast12Months = pricesLast12Months.first;
+          double lastPriceLast12Months = pricesLast12Months.last;
+
+          // Calcular a rentabilidade dos últimos 12 meses
+          returnLast12Months = ((lastPriceLast12Months - firstPriceLast12Months) / firstPriceLast12Months) * 100;
+        }
+
+        return [returnLastMonth, returnLast12Months];
       } else {
         throw Exception('Failed to load historical prices');
       }
@@ -90,7 +107,11 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
               future: _calculateReturns(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
+                  return Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.grey[900]!),
+                    ),
+                  );
                 } else if (snapshot.hasError) {
                   return Text('Error calculating returns: ${snapshot.error}');
                 } else {
@@ -172,14 +193,14 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
               const SizedBox(height: 4),
               Text(
                 'Rentabilidade (12M): ${returnLast12Months.toStringAsFixed(2)}%',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   color: Colors.grey,
                 ),
               ),
               Text(
-                'Mês Atual: ${returnCurrentMonth.toStringAsFixed(2)}%',
-                style: TextStyle(
+                'Último Mês: ${returnCurrentMonth.toStringAsFixed(2)}%',
+                style: const TextStyle(
                   fontSize: 16,
                   color: Colors.grey,
                 ),
