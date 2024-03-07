@@ -5,7 +5,7 @@ import 'package:flutter_investment_control/core/app_icons.dart';
 import 'package:flutter_investment_control/models/active_model.dart';
 import 'package:flutter_investment_control/pages/active/details/active_details_page.dart';
 import 'package:flutter_investment_control/pages/active/active_page.dart';
-import 'package:flutter_investment_control/services/api_stocks_indicators.dart';
+import 'package:flutter_investment_control/services/api_stocks_ibovespa.dart';
 import 'package:flutter_investment_control/widgets/btc/bitcoin_card_widget.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
@@ -26,7 +26,7 @@ class _HomePageState extends State<HomePage> {
       ''; // Variável de estado para armazenar o texto de pesquisa
   NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
 
-  StockIndicatorsApi api = StockIndicatorsApi();
+  StockIbovespaApi api = StockIbovespaApi();
   List<Active> stockIndicators = [];
 
   final PageController _controller = PageController();
@@ -161,7 +161,7 @@ class _HomePageState extends State<HomePage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ActiveDetalisPage(active: active),
+        builder: (_) => ActiveDetailsPage(active: active),
       ),
     );
   }
