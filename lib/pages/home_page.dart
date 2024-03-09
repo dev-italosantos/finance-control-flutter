@@ -19,11 +19,37 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final List<Map<String, dynamic>> newsList = [
+    {
+      "title": "Bitcoin reaches new all-time high!",
+      "image":
+      "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
+    },
+    {
+      "title": "Major companies now accepting Bitcoin as payment",
+      "image":
+      "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
+    },
+    {
+      "title": "Bitcoin price analysis: Is it the right time to invest?",
+      "image":
+      "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
+    },
+    {
+      "title": "Government regulations shake up the Bitcoin market",
+      "image":
+      "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
+    },
+    {
+      "title": "Top 5 Bitcoin wallets for secure storage",
+      "image":
+      "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
+    },
+  ];
+
   List<Active> selecionadas = [];
-  List<Active> filteredStocks =
-      []; // Adicione esta linha para declarar filteredStocks
-  String searchText =
-      ''; // Variável de estado para armazenar o texto de pesquisa
+  List<Active> filteredStocks = [];
+  String searchText = '';
   NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
 
   StockIbovespaApi api = StockIbovespaApi();
@@ -31,33 +57,8 @@ class _HomePageState extends State<HomePage> {
 
   final PageController _controller = PageController();
   int _currentPage = 0;
-  final List<Map<String, dynamic>> newsList = [
-    {
-      "title": "Bitcoin reaches new all-time high!",
-      "image":
-          "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
-    },
-    {
-      "title": "Major companies now accepting Bitcoin as payment",
-      "image":
-          "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
-    },
-    {
-      "title": "Bitcoin price analysis: Is it the right time to invest?",
-      "image":
-          "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
-    },
-    {
-      "title": "Government regulations shake up the Bitcoin market",
-      "image":
-          "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
-    },
-    {
-      "title": "Top 5 Bitcoin wallets for secure storage",
-      "image":
-          "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
-    },
-  ];
+
+  TextEditingController _searchController = TextEditingController();
 
   late Timer _timer;
 
@@ -76,7 +77,6 @@ class _HomePageState extends State<HomePage> {
         curve: Curves.easeInOut,
       );
     });
-    // (stockIndicators);
     fetchData();
   }
 
@@ -84,111 +84,26 @@ class _HomePageState extends State<HomePage> {
   void dispose() {
     _timer.cancel();
     _controller.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
   fetchData() async {
     var data = await api.fetchStockIndicators();
-    filteredStocks = data.map((item) => Active(
-      icon: AppIcons.btc,
-      name: item['name'],
-      symbol: item['symbol'],
-      lastPrice: item['lastPrice'].toDouble(),
-      sector: item['sector'],
-      segment: item['segment'],
-      dividendYield: item['dividendYield'].toDouble(),
-      lastYearHigh: item['lastYearHigh'].toDouble(),
-      lastYearLow: item['lastYearLow'].toDouble()
-    )).toList();
-
     setState(() {
-      stockIndicators = filteredStocks;
+      stockIndicators = data.map((item) => Active(
+        icon: AppIcons.btc,
+        name: item['name'],
+        symbol: item['symbol'],
+        lastPrice: item['lastPrice'].toDouble(),
+        sector: item['sector'],
+        segment: item['segment'],
+        dividendYield: item['dividendYield'].toDouble(),
+        lastYearHigh: item['lastYearHigh'].toDouble(),
+        lastYearLow: item['lastYearLow'].toDouble(),
+      )).toList();
+      filteredStocks = stockIndicators;
     });
-  }
-
-  AppBar appBarDynamics() {
-    if (selecionadas.isEmpty) {
-      return AppBar(
-        title: const Text(
-          'worthy',
-          style: TextStyle(
-            fontSize: 18,
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Colors.black,
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.favorite, // Ícone de notificação
-              color: Colors.white,
-              size: 20.0,
-            ),
-            onPressed: () {
-              // Adicione aqui a ação desejada para o ícone de notificação
-            },
-          ),
-          IconButton(
-            icon: const Icon(
-              Icons.notifications, // Ícone de notificação
-              color: Colors.white,
-              size: 20.0,
-            ),
-            onPressed: () {
-              // Adicione aqui a ação desejada para o ícone de notificação
-            },
-          ),
-        ],
-      );
-    } else {
-      return AppBar(
-        backgroundColor: Colors.black,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            setState(() {
-              selecionadas = [];
-            });
-          },
-        ),
-        title: Text('${selecionadas.length} selecionadas'),
-      );
-    }
-  }
-
-  showDetails(Active active) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ActiveDetailsPage(active: active),
-      ),
-    );
-  }
-
-  navigateToWalletPage() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const AssetList(),
-      ),
-    );
-  }
-
-  navigateToBtcPage() {
-    final List<String> newsList = [
-      "Bitcoin reaches new all-time high!",
-      "Major companies now accepting Bitcoin as payment",
-      "Bitcoin price analysis: Is it the right time to invest?",
-      "Government regulations shake up the Bitcoin market",
-      "Top 5 Bitcoin wallets for secure storage",
-    ];
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => BitcoinCard(),
-      ),
-    );
   }
 
   @override
@@ -204,8 +119,7 @@ class _HomePageState extends State<HomePage> {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _bottomAction(
-                  FontAwesomeIcons.clockRotateLeft, navigateToWalletPage),
+              _bottomAction(FontAwesomeIcons.clockRotateLeft, navigateToWalletPage),
               _bottomAction(FontAwesomeIcons.chartPie, navigateToWalletPage),
               const SizedBox(width: 48.0),
               _bottomAction(FontAwesomeIcons.wallet, navigateToWalletPage),
@@ -217,15 +131,15 @@ class _HomePageState extends State<HomePage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: selecionadas.isNotEmpty
           ? Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: FloatingActionButton(
-                backgroundColor: Colors.grey,
-                onPressed: () {},
-                shape: const CircleBorder(),
-                elevation: 0.0,
-                child: const Icon(Icons.add, color: Colors.black),
-              ),
-            )
+        padding: const EdgeInsets.only(bottom: 16.0),
+        child: FloatingActionButton(
+          backgroundColor: Colors.grey,
+          onPressed: () {},
+          shape: const CircleBorder(),
+          elevation: 0.0,
+          child: const Icon(Icons.add, color: Colors.black),
+        ),
+      )
           : null,
       body: Column(
         children: [
@@ -248,87 +162,87 @@ class _HomePageState extends State<HomePage> {
                 ),
                 SizedBox(
                   height: 200,
-                  child: stockIndicators
-                          .isEmpty // Verifica se os dados estão vazios
+                  child: stockIndicators.isEmpty
                       ? Shimmer.fromColors(
-                          baseColor: Colors.grey[300]!,
-                          highlightColor: Colors.grey[100]!,
-                          child: PageView.builder(
-                            controller: _controller,
-                            itemCount: 5, // Define um valor fixo para o shimmer
-                            itemBuilder: (_, __) => Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8.0),
-                              child: Card(
-                                elevation: 4,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16.0),
-                                ),
-                                child:
-                                    Container(), // Container vazio para o efeito shimmer
-                              ),
-                            ),
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
+                    child: PageView.builder(
+                      controller: _controller,
+                      itemCount: 5,
+                      itemBuilder: (_, __) => Padding(
+                        padding:
+                        const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16.0),
                           ),
-                        )
+                          child: Container(),
+                        ),
+                      ),
+                    ),
+                  )
                       : PageView.builder(
-                          controller: _controller,
-                          itemCount: newsList.length,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8.0),
-                              child: Card(
-                                elevation: 4,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16.0),
-                                ),
-                                child: Stack(
-                                  children: [
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(16.0),
-                                        child: Image.network(
-                                          newsList[index]['image'],
-                                          fit: BoxFit.cover,
-                                          errorBuilder:
-                                              (context, error, stackTrace) {
-                                            return const Center(
-                                              child: Icon(Icons.error),
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      bottom: 0,
-                                      left: 0,
-                                      right: 0,
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius: const BorderRadius.only(
-                                            bottomLeft: Radius.circular(16.0),
-                                            bottomRight: Radius.circular(16.0),
-                                          ),
-                                          color: Colors.black.withOpacity(0.6),
-                                        ),
-                                        padding: EdgeInsets.all(8.0),
-                                        child: Text(
-                                          newsList[index]['title'],
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                              fontSize: 16.0,
-                                              color: Colors.white),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                    controller: _controller,
+                    itemCount: newsList.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding:
+                        const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16.0),
+                          ),
+                          child: Stack(
+                            children: [
+                              SizedBox(
+                                width: double.infinity,
+                                child: ClipRRect(
+                                  borderRadius:
+                                  BorderRadius.circular(16.0),
+                                  child: Image.network(
+                                    newsList[index]['image'],
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) {
+                                      return const Center(
+                                        child: Icon(Icons.error),
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
-                            );
-                          },
+                              Positioned(
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius:
+                                    const BorderRadius.only(
+                                      bottomLeft: Radius.circular(16.0),
+                                      bottomRight: Radius.circular(16.0),
+                                    ),
+                                    color:
+                                    Colors.black.withOpacity(0.6),
+                                  ),
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    newsList[index]['title'],
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                        fontSize: 16.0,
+                                        color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
@@ -359,24 +273,34 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Expanded(
                         child: TextField(
+                          controller: _searchController,
                           onChanged: (value) {
                             setState(() {
-                              searchText = value.toLowerCase(); // Converta o texto de pesquisa para minúsculas
+                              searchText = value.toUpperCase();
                               filteredStocks = stockIndicators.where((active) =>
-                              active.symbol.toLowerCase().contains(searchText) || // Verifique se o símbolo contém o texto de pesquisa
-                                  active.name.toLowerCase().contains(searchText) || // Verifique se o nome contém o texto de pesquisa
-                                  active.sector.toLowerCase().contains(searchText) || // Verifique se o setor contém o texto de pesquisa
-                                  active.segment.toLowerCase().contains(searchText) // Verifique se o segmento contém o texto de pesquisa
-                              ).toList();
+                              active.symbol.toUpperCase().contains(searchText) ||
+                                  active.name.toUpperCase().contains(searchText) ||
+                                  active.sector.toUpperCase().contains(searchText) ||
+                                  active.segment.toUpperCase().contains(searchText)).toList();
                             });
                           },
                           decoration: const InputDecoration(
-                            hintText: 'search',
+                            hintText: 'Search',
                             border: InputBorder.none,
                           ),
+                          textCapitalization: TextCapitalization.characters,
                         ),
                       ),
-                      const Icon(Icons.search, color: Colors.grey),
+                      IconButton(
+                        icon: Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            _searchController.clear();
+                            searchText = '';
+                            filteredStocks = stockIndicators;
+                          });
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -385,7 +309,6 @@ class _HomePageState extends State<HomePage> {
                     future: Future.delayed(const Duration(seconds: 3), () {}),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        // Exibe shimmer enquanto aguarda
                         return Shimmer.fromColors(
                           baseColor: Colors.grey[300]!,
                           highlightColor: Colors.grey[100]!,
@@ -393,20 +316,19 @@ class _HomePageState extends State<HomePage> {
                             itemBuilder: (_, __) => Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Container(
-                                height: 24.0, // Altura do shimmer
-                                color: Colors.white, // Cor do shimmer
+                                height: 24.0,
+                                color: Colors.white,
                               ),
                             ),
                             separatorBuilder: (_, __) => const Divider(),
-                            itemCount: 10, // Define um valor para o shimmer
+                            itemCount: 10,
                           ),
                         );
                       } else {
-                        // Exibe o conteúdo após o carregamento
                         return ListView.separated(
                           itemBuilder: (BuildContext context, int active) {
                             bool isSelected =
-                                selecionadas.contains(filteredStocks[active]);
+                            selecionadas.contains(filteredStocks[active]);
 
                             return ListTile(
                               shape: const RoundedRectangleBorder(
@@ -416,12 +338,12 @@ class _HomePageState extends State<HomePage> {
                               ),
                               leading: isSelected
                                   ? const CircleAvatar(
-                                      child: Icon(Icons.check),
-                                    )
+                                child: Icon(Icons.check),
+                              )
                                   : SizedBox(
-                                      width: 40.0,
-                                      child: Image.asset(AppIcons.btc),
-                                    ),
+                                width: 40.0,
+                                child: Image.asset(AppIcons.btc),
+                              ),
                               title: Text(
                                 filteredStocks[active].symbol,
                                 style: const TextStyle(
@@ -431,21 +353,19 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                               trailing: Text(
-                                real.format(
-                                    filteredStocks[active].lastPrice),
+                                real.format(filteredStocks[active].lastPrice),
                               ),
                               selected: isSelected,
                               tileColor: isSelected ? Colors.red : null,
                               onLongPress: () {
                                 setState(() {
                                   isSelected
-                                      ? selecionadas
-                                          .remove(filteredStocks[active])
-                                      : selecionadas
-                                          .add(filteredStocks[active]);
+                                      ? selecionadas.remove(filteredStocks[active])
+                                      : selecionadas.add(filteredStocks[active]);
                                 });
                               },
-                              onTap: () => showDetails(filteredStocks[active]),
+                              onTap: () =>
+                                  showDetails(filteredStocks[active]),
                             );
                           },
                           padding: const EdgeInsets.all(16.0),
@@ -460,6 +380,98 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  AppBar appBarDynamics() {
+    if (selecionadas.isEmpty) {
+      return AppBar(
+        title: Row(
+          children: [
+            Image.asset(
+              AppIcons.logo_icon_02,
+              width: 17,
+            ),
+            const SizedBox(width: 5.0),
+            const Padding(
+              padding: EdgeInsets.only(top: 5),
+              child: Text(
+                'worthy',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.black,
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.favorite, // Ícone de notificação
+              color: Colors.white,
+              size: 16.0,
+            ),
+            onPressed: () {
+              // Adicione aqui a ação desejada para o ícone de notificação
+            },
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.notifications, // Ícone de notificação
+              color: Colors.white,
+              size: 16.0,
+            ),
+            onPressed: () {
+              // Adicione aqui a ação desejada para o ícone de notificação
+            },
+          ),
+        ],
+      );
+    } else {
+      return AppBar(
+        backgroundColor: Colors.black,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            setState(() {
+              selecionadas = [];
+              filteredStocks = stockIndicators;
+              _searchController.clear();
+            });
+          },
+        ),
+        title: Text('${selecionadas.length} selecionadas'),
+      );
+    }
+  }
+
+  showDetails(Active active) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ActiveDetailsPage(active: active),
+      ),
+    );
+  }
+
+  navigateToWalletPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const AssetList(),
+      ),
+    );
+  }
+
+  navigateToBtcPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BitcoinCard(),
       ),
     );
   }
