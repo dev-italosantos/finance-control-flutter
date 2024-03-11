@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_investment_control/models/active_model.dart';
+import 'package:flutter_investment_control/services/api_stock_indicators.dart';
 import 'package:flutter_investment_control/services/api_stocks_historicals.dart';
 import 'package:intl/intl.dart';
 
@@ -15,10 +16,19 @@ class ActiveDetailsPage extends StatefulWidget {
 class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
   NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
 
+  @override
+  void initState() {
+    super.initState();
+    _fetchStockIndicators(); // Chama a função para buscar os indicadores ao iniciar a página
+  }
+
+  Map<String, dynamic>? _stockIndicators;
+
   Future<List<double>> _calculateReturns() async {
     try {
       // Get historical prices from the API response
-      final response = await StocksHistoricals().getStockHistoricals(widget.active.symbol);
+      final response =
+          await StocksHistoricals().getStockHistoricals(widget.active.symbol);
 
       if (response != null) {
         List<dynamic> historicals = response['historicals'] as List<dynamic>;
@@ -30,11 +40,13 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
         // Filtrar os preços para o último mês
         List<double> pricesLastMonth = historicals
             .where((historical) {
-          DateTime date = DateTime.parse(historical['date']);
-          return date.isAfter(firstDayOfLastMonth.subtract(Duration(days: 1))) &&
-              date.isBefore(now);
-        })
-            .map<double>((historical) => double.parse(historical['close'].toString()))
+              DateTime date = DateTime.parse(historical['date']);
+              return date.isAfter(
+                      firstDayOfLastMonth.subtract(Duration(days: 1))) &&
+                  date.isBefore(now);
+            })
+            .map<double>(
+                (historical) => double.parse(historical['close'].toString()))
             .toList();
 
         // Verificar se há preços disponíveis para o último mês
@@ -45,17 +57,20 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
           double lastDayClosingPrice = pricesLastMonth.last;
 
           // Calcular a rentabilidade para o último mês
-          returnLastMonth = ((lastDayClosingPrice - firstDayClosingPrice) / firstDayClosingPrice) * 100;
+          returnLastMonth = ((lastDayClosingPrice - firstDayClosingPrice) /
+                  firstDayClosingPrice) *
+              100;
         }
 
         // Calcular a rentabilidade para os últimos 12 meses
         DateTime twelveMonthsAgo = DateTime.now().subtract(Duration(days: 365));
         List<double> pricesLast12Months = historicals
             .where((historical) {
-          DateTime date = DateTime.parse(historical['date']);
-          return date.isAfter(twelveMonthsAgo.subtract(Duration(days: 1)));
-        })
-            .map<double>((historical) => double.parse(historical['close'].toString()))
+              DateTime date = DateTime.parse(historical['date']);
+              return date.isAfter(twelveMonthsAgo.subtract(Duration(days: 1)));
+            })
+            .map<double>(
+                (historical) => double.parse(historical['close'].toString()))
             .toList();
 
         double returnLast12Months = 0.0;
@@ -65,7 +80,10 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
           double lastPriceLast12Months = pricesLast12Months.last;
 
           // Calcular a rentabilidade dos últimos 12 meses
-          returnLast12Months = ((lastPriceLast12Months - firstPriceLast12Months) / firstPriceLast12Months) * 100;
+          returnLast12Months =
+              ((lastPriceLast12Months - firstPriceLast12Months) /
+                      firstPriceLast12Months) *
+                  100;
         }
 
         return [returnLastMonth, returnLast12Months];
@@ -75,6 +93,29 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
     } catch (e) {
       print('Error calculating returns: $e');
       throw Exception('Error calculating returns');
+    }
+  }
+
+  Future<void> _fetchStockIndicators() async {
+    try {
+      // Chama a função para obter os indicadores da API
+      final indicators = await StockIndicators().getStockIndicators(widget.active.symbol);
+      setState(() {
+        _stockIndicators = indicators;
+      });
+    } catch (e) {
+      print('Error fetching stock indicators: $e');
+      // Trate o erro conforme necessário
+    }
+  }
+
+  String _formatIndicatorValue(dynamic value) {
+    if (value is double) {
+      return value.toStringAsFixed(2);
+    } else if (value is String) {
+      return value;
+    } else {
+      return '';
     }
   }
 
@@ -98,67 +139,176 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
         ),
         backgroundColor: Colors.black,
       ),
-      body: Padding(
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  FutureBuilder<List<double>>(
+                    future: _calculateReturns(),
+                    builder: (context, snapshot) {
+                      double returnCurrentMonth = 0.0;
+                      double returnLast12Months = 0.0;
+
+                      if (snapshot.connectionState == ConnectionState.done &&
+                          snapshot.hasData) {
+                        returnCurrentMonth = snapshot.data![0];
+                        returnLast12Months = snapshot.data![1];
+                      }
+
+                      return _buildHeader(
+                          returnLast12Months, returnCurrentMonth);
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  _buildInfoSection(
+                    title: 'Informações Gerais',
+                    children: [
+                      _buildGeneralInfoCard(
+                        title: 'Preço Atual',
+                        value: real.format(widget.active.lastPrice),
+                      ),
+                      _buildGeneralInfoCard(
+                        title: 'Dividend Yield',
+                        value:
+                            '${widget.active.dividendYield.toStringAsFixed(2)}%',
+                      ),
+                      _buildGeneralInfoCard(
+                        title: 'Setor',
+                        value: widget.active.sector,
+                      ),
+                      _buildGeneralInfoCard(
+                        title: 'Segmento',
+                        value: widget.active.segment,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  _buildInfoSection(
+                    title: 'Desempenho Anual',
+                    children: [
+                      _buildPerformanceInfoCard(
+                        title: 'Último Ano Baixo',
+                        value: real.format(widget.active.lastYearLow),
+                      ),
+                      _buildPerformanceInfoCard(
+                        title: 'Último Ano Alto',
+                        value: real.format(widget.active.lastYearHigh),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  // Add more sections as needed
+                  // Substitua a parte relevante do código pelo seguinte:
+
+                  // ListView.builder(
+                  //   shrinkWrap: true,
+                  //   physics: NeverScrollableScrollPhysics(),
+                  //   itemCount: _stockIndicators!['indicators'].length,
+                  //   itemBuilder: (context, index) {
+                  //     final indicator = _stockIndicators!['indicators'][index];
+                  //     return _buildIndicatorCard(indicator); // Corrigido: Passando o mapa inteiro
+                  //   },
+                  // )
+
+                  _buildIndicatorsSection(),
+                ],
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIndicatorsSection() {
+    if (_stockIndicators == null || _stockIndicators!['indicators'] == null) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    return SizedBox(
+      height: 300, // Set a finite height for the ListView
+      child: ListView(
+        padding: EdgeInsets.all(16.0),
+        children: [
+          _buildIndicatorCard('bookValuePerShare'),
+          _buildIndicatorCard('currentLiquidity'),
+          // Add more cards as needed
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIndicatorCard(String propertyName) {
+    if (_stockIndicators == null || _stockIndicators!['indicators'] == null) {
+      return SizedBox(); // Ou algum outro widget de espaço reservado
+    }
+
+    final List<dynamic> indicators = _stockIndicators!['indicators'];
+    Map<String, dynamic>? filteredIndicator;
+
+    for (var indicator in indicators) {
+      if (indicator.containsKey(propertyName)) {
+        filteredIndicator = indicator;
+        break;
+      }
+    }
+
+    if (filteredIndicator == null) {
+      return SizedBox(); // Ou algum outro widget de espaço reservado
+    }
+
+    List<Widget> indicatorWidgets = [];
+
+    filteredIndicator.forEach((key, value) {
+      if (value is Map && key != 'name' && key != 'description') { // Verifica se o valor é um mapa
+        indicatorWidgets.add(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                key,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Value: ${value['value']}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+              Text(
+                'Description: ${value['description']}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    });
+
+    return Card(
+      elevation: 2,
+      color: Colors.grey[900],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            FutureBuilder<List<double>>(
-              future: _calculateReturns(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.grey[900]!),
-                    ),
-                  );
-                } else if (snapshot.hasError) {
-                  return Text('Error calculating returns: ${snapshot.error}');
-                } else {
-                  double returnCurrentMonth = snapshot.data![0];
-                  double returnLast12Months = snapshot.data![1];
-                  return _buildHeader(returnLast12Months, returnCurrentMonth);
-                }
-              },
-            ),
-            const SizedBox(height: 20),
-            _buildInfoSection(
-              title: 'Informações Gerais',
-              children: [
-                _buildGeneralInfoCard(
-                  title: 'Preço Atual',
-                  value: real.format(widget.active.lastPrice),
-                ),
-                _buildGeneralInfoCard(
-                  title: 'Dividend Yield',
-                  value: '${widget.active.dividendYield.toStringAsFixed(2)}%',
-                ),
-                _buildGeneralInfoCard(
-                  title: 'Setor',
-                  value: widget.active.sector,
-                ),
-                _buildGeneralInfoCard(
-                  title: 'Segmento',
-                  value: widget.active.segment,
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            _buildInfoSection(
-              title: 'Desempenho Anual',
-              children: [
-                _buildPerformanceInfoCard(
-                  title: 'Último Ano Baixo',
-                  value: real.format(widget.active.lastYearLow),
-                ),
-                _buildPerformanceInfoCard(
-                  title: 'Último Ano Alto',
-                  value: real.format(widget.active.lastYearHigh),
-                ),
-              ],
-            ),
-            // Add more sections as needed
-          ],
+          mainAxisSize: MainAxisSize.min,
+          children: indicatorWidgets,
         ),
       ),
     );
@@ -212,7 +362,8 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
     );
   }
 
-  Widget _buildInfoSection({required String title, required List<Widget> children}) {
+  Widget _buildInfoSection(
+      {required String title, required List<Widget> children}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -242,7 +393,7 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
   Widget _buildGeneralInfoCard({required String title, required String value}) {
     return Card(
       elevation: 2,
-      color:  Colors.grey[900],
+      color: Colors.grey[900],
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -255,7 +406,7 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
-                color:  Colors.white,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 8),
@@ -272,7 +423,8 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
     );
   }
 
-  Widget _buildPerformanceInfoCard({required String title, required String value}) {
+  Widget _buildPerformanceInfoCard(
+      {required String title, required String value}) {
     return Card(
       elevation: 2,
       color: Colors.grey[900],
@@ -305,3 +457,4 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
     );
   }
 }
+

@@ -9,7 +9,7 @@ class StockIndicators {
     final response = await http.get(Uri.parse(apiUrl));
 
     if (response.statusCode == 200) {
-      print('Data received: ${response.body}');
+      // print('Data received: ${response.body}');
 
       final jsonData = jsonDecode(response.body) as Map<String, dynamic>;
 
