@@ -33,25 +33,33 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
     print('Dados recebidos _calculateFairValue: $indicators');
 
     // Encontra os indicadores necessários na lista
-    final Map<String, dynamic> earningsPerShareIndicator = indicators.firstWhere(
-          (indicator) => indicator.containsKey('earningsPerShare'),
-      orElse: () => <String, dynamic>{'earningsPerShare': {'value': 0.0}}, // Retorna um mapa com valor padrão se não encontrar
+    final Map<String, dynamic> earningsPerShareIndicator =
+        indicators.firstWhere(
+      (indicator) => indicator.containsKey('earningsPerShare'),
+      orElse: () => <String, dynamic>{
+        'earningsPerShare': {'value': 0.0}
+      }, // Retorna um mapa com valor padrão se não encontrar
     );
 
-    final Map<String, dynamic> bookValuePerShareIndicator = indicators.firstWhere(
-          (indicator) => indicator.containsKey('bookValuePerShare'),
-      orElse: () => <String, dynamic>{'bookValuePerShare': {'value': 0.0}}, // Retorna um mapa com valor padrão se não encontrar
+    final Map<String, dynamic> bookValuePerShareIndicator =
+        indicators.firstWhere(
+      (indicator) => indicator.containsKey('bookValuePerShare'),
+      orElse: () => <String, dynamic>{
+        'bookValuePerShare': {'value': 0.0}
+      }, // Retorna um mapa com valor padrão se não encontrar
     );
 
-    final double earningsPerShare = earningsPerShareIndicator['earningsPerShare']['value'] ?? 0.0;
-    final double bookValuePerShare = bookValuePerShareIndicator['bookValuePerShare']['value'] ?? 0.0;
+    final double earningsPerShare =
+        earningsPerShareIndicator['earningsPerShare']['value'] ?? 0.0;
+    final double bookValuePerShare =
+        bookValuePerShareIndicator['bookValuePerShare']['value'] ?? 0.0;
 
     // Fórmula de Valor Intrínseco de Benjamin Graham
     final double fairValue = sqrt(22.5 * earningsPerShare * bookValuePerShare);
 
     return fairValue;
   }
-  
+
   @override
   void initState() {
     super.initState();
@@ -64,7 +72,7 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
     try {
       // Get historical prices from the API response
       final response =
-      await StocksHistoricals().getStockHistoricals(widget.active.symbol);
+          await StocksHistoricals().getStockHistoricals(widget.active.symbol);
 
       if (response != null) {
         List<dynamic> historicals = response['historicals'] as List<dynamic>;
@@ -76,11 +84,11 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
         // Filtrar os preços para o último d
         List<double> pricesLastMonth = historicals
             .where((historical) {
-          DateTime date = DateTime.parse(historical['date']);
-          return date.isAfter(
-              firstDayOfLastMonth.subtract(Duration(days: 1))) &&
-              date.isBefore(now);
-        })
+              DateTime date = DateTime.parse(historical['date']);
+              return date.isAfter(
+                      firstDayOfLastMonth.subtract(Duration(days: 1))) &&
+                  date.isBefore(now);
+            })
             .map<double>(
                 (historical) => double.parse(historical['close'].toString()))
             .toList();
@@ -94,7 +102,7 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
 
           // Calcular a rentabilidade para o último mês
           returnLastMonth = ((lastDayClosingPrice - firstDayClosingPrice) /
-              firstDayClosingPrice) *
+                  firstDayClosingPrice) *
               100;
         }
 
@@ -102,9 +110,9 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
         DateTime twelveMonthsAgo = DateTime.now().subtract(Duration(days: 365));
         List<double> pricesLast12Months = historicals
             .where((historical) {
-          DateTime date = DateTime.parse(historical['date']);
-          return date.isAfter(twelveMonthsAgo.subtract(Duration(days: 1)));
-        })
+              DateTime date = DateTime.parse(historical['date']);
+              return date.isAfter(twelveMonthsAgo.subtract(Duration(days: 1)));
+            })
             .map<double>(
                 (historical) => double.parse(historical['close'].toString()))
             .toList();
@@ -118,7 +126,7 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
           // Calcular a rentabilidade dos últimos 12 meses
           returnLast12Months =
               ((lastPriceLast12Months - firstPriceLast12Months) /
-                  firstPriceLast12Months) *
+                      firstPriceLast12Months) *
                   100;
         }
 
@@ -135,7 +143,8 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
   Future<void> _fetchStockIndicators() async {
     try {
       // Chama a função para obter os indicadores da API
-      final indicators = await StockIndicators().getStockIndicators(widget.active.symbol);
+      final indicators =
+          await StockIndicators().getStockIndicators(widget.active.symbol);
       setState(() {
         _stockIndicators = indicators;
       });
@@ -200,7 +209,7 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
                       _buildGeneralInfoCard(
                         title: 'Dividend Yield',
                         value:
-                        '${widget.active.dividendYield.toStringAsFixed(2)}%',
+                            '${widget.active.dividendYield.toStringAsFixed(2)}%',
                       ),
                       _buildGeneralInfoCard(
                         title: 'Setor',
@@ -266,7 +275,10 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
         minX: 0,
         maxX: values.length.toDouble() - 1,
         minY: 0,
-        maxY: values.reduce((curr, next) => curr > next ? curr : next).toDouble() + 10,
+        maxY: values
+                .reduce((curr, next) => curr > next ? curr : next)
+                .toDouble() +
+            10,
       ),
     );
 
@@ -292,19 +304,19 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
     );
   }
 
-  void _showIndicatorDescription(String description) {
+  void _showIndicatorDescription(String description, String name) {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
         return Container(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Descrição do Indicador',
-                style: TextStyle(
+                name,
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                 ),
@@ -442,8 +454,10 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
 
           cards.add(
             Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
-              width: MediaQuery.of(context).size.width / 2 - 24, // Defina um tamanho máximo
+              margin:
+                  const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
+              width: MediaQuery.of(context).size.width / 2 -
+                  24, // Defina um tamanho máximo
               child: Card(
                 elevation: 2,
                 color: Colors.grey[900],
@@ -483,7 +497,9 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
                         children: [
                           GestureDetector(
                             onTap: () {
-                              _showIndicatorDescription('${value['description']}' ?? '');
+                              _showIndicatorDescription(
+                                  '${value['description']}' ?? '',
+                                  '${value['name']}' ?? '');
                             },
                             child: Icon(
                               infoIcon,
@@ -493,7 +509,8 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
                           ),
                           const SizedBox(height: 8),
                           GestureDetector(
-                            onTap: _showHistoryChart, // Chama o método para exibir o gráfico de histórico
+                            onTap:
+                                _showHistoryChart, // Chama o método para exibir o gráfico de histórico
                             child: Icon(
                               historyIcon,
                               color: Colors.white,
@@ -507,7 +524,6 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
                 ),
               ),
             ),
-
           );
         }
       }
@@ -562,7 +578,7 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
     }
 
     final List<Map<String, dynamic>> indicators =
-    indicatorsDynamic.cast<Map<String, dynamic>>();
+        indicatorsDynamic.cast<Map<String, dynamic>>();
 
     final Map<String, List<String>> sectionKeys = {
       'Indicadores de Valuation': [
@@ -598,9 +614,7 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
         'returnOnInvestedCapital',
         'assetTurnoverRatio'
       ],
-      'Indicadores de Crescimento': [
-        'cagrProfitsFiveYears'
-      ],
+      'Indicadores de Crescimento': ['cagrProfitsFiveYears'],
     };
 
     List<Widget> cards = [];
@@ -612,7 +626,8 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
               child: Text(
                 sectionTitle,
                 style: const TextStyle(
@@ -653,15 +668,83 @@ class _ActiveDetailsPageState extends State<ActiveDetailsPage> {
     double fairValue = _calculateFairValue();
     String formattedFairValue = real.format(fairValue);
 
-    return _buildInfoSection(
-      title: 'Preço Justo do Ativo',
+    double currentPrice = widget.active.lastPrice;
+    double potentialReturn = ((fairValue - currentPrice) / currentPrice) * 100;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildGeneralInfoCard(
-          title: 'Preço Justo',
-          value: formattedFairValue,
+        GestureDetector(
+          onTap: () {
+            _showIndicatorDescription(
+                'O Preço Justo é calculado utilizando a fórmula simplificada de Valor Intrínseco proposta por Benjamin Graham: VI = √(22,5 x LPA x VPA). Essa fórmula é uma estimativa do valor intrínseco por ação, considerando o Lucro por Ação (LPA) e o Valor Patrimonial por Ação (VPA). A constante 22,5 é uma simplificação para facilitar o cálculo, porém, é importante destacar que essa versão não considera fatores como taxa de crescimento esperada (g) ou taxa de rendimento do investimento sem risco (Y) presentes na fórmula original de Graham. Assim, enquanto o Preço Justo pode fornecer uma estimativa rápida do valor intrínseco, outras análises e considerações são necessárias para decisões de investimento informadas.',
+                "Valor Intrínseco"
+            );
+          },
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Valor Intrínseco por Benjamin Graham',
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Icon(Icons.info_outline, color: Colors.grey),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Preço Justo',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  formattedFairValue,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Potencial de Rentabilidade',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  '${potentialReturn.toStringAsFixed(2)}%',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ],
     );
   }
-
 }
