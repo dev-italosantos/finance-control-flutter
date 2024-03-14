@@ -25,27 +25,27 @@ class _HomePageState extends State<HomePage> {
     {
       "title": "Bitcoin reaches new all-time high!",
       "image":
-      "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
+          "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
     },
     {
       "title": "Major companies now accepting Bitcoin as payment",
       "image":
-      "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
+          "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
     },
     {
       "title": "Bitcoin price analysis: Is it the right time to invest?",
       "image":
-      "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
+          "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
     },
     {
       "title": "Government regulations shake up the Bitcoin market",
       "image":
-      "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
+          "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
     },
     {
       "title": "Top 5 Bitcoin wallets for secure storage",
       "image":
-      "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
+          "https://www.cointribune.com/app/uploads/2024/02/bitcoin-proces-Australien-2.png",
     },
   ];
 
@@ -64,6 +64,7 @@ class _HomePageState extends State<HomePage> {
   TextEditingController _searchController = TextEditingController();
 
   late Timer _timer;
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -98,13 +99,15 @@ class _HomePageState extends State<HomePage> {
 
       for (var item in data) {
         var assetDetails = logoUrls.firstWhere(
-              (element) => element['ticker'] == item['symbol'],
+          (element) => element['ticker'] == item['symbol'],
           orElse: () => {},
         );
 
         setState(() {
           stockIndicators.add(Active(
-            icon: assetDetails.isNotEmpty ? assetDetails['logoUrl'] : AppIcons.btc,
+            icon: assetDetails.isNotEmpty
+                ? assetDetails['logoUrl']
+                : AppIcons.btc,
             name: item['name'],
             symbol: item['symbol'],
             lastPrice: item['lastPrice'].toDouble(),
@@ -115,6 +118,7 @@ class _HomePageState extends State<HomePage> {
             lastYearLow: item['lastYearLow'].toDouble(),
           ));
           filteredStocks = stockIndicators;
+          isLoading = false; // Set isLoading to false after data is fetched
         });
       }
     } catch (e) {
@@ -175,7 +179,8 @@ class _HomePageState extends State<HomePage> {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _bottomAction(FontAwesomeIcons.clockRotateLeft, navigateToWalletPage),
+              _bottomAction(
+                  FontAwesomeIcons.clockRotateLeft, navigateToWalletPage),
               _bottomAction(FontAwesomeIcons.chartPie, navigateToWalletPage),
               const SizedBox(width: 48.0),
               _bottomAction(FontAwesomeIcons.wallet, navigateToWalletPage),
@@ -187,15 +192,15 @@ class _HomePageState extends State<HomePage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: selecionadas.isNotEmpty
           ? Padding(
-        padding: const EdgeInsets.only(bottom: 16.0),
-        child: FloatingActionButton(
-          backgroundColor: Colors.grey,
-          onPressed: () {},
-          shape: const CircleBorder(),
-          elevation: 0.0,
-          child: const Icon(Icons.add, color: Colors.black),
-        ),
-      )
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: FloatingActionButton(
+                backgroundColor: Colors.grey,
+                onPressed: () {},
+                shape: const CircleBorder(),
+                elevation: 0.0,
+                child: const Icon(Icons.add, color: Colors.black),
+              ),
+            )
           : null,
       body: Column(
         children: [
@@ -220,85 +225,83 @@ class _HomePageState extends State<HomePage> {
                   height: 200,
                   child: stockIndicators.isEmpty
                       ? Shimmer.fromColors(
-                    baseColor: Colors.grey[300]!,
-                    highlightColor: Colors.grey[100]!,
-                    child: PageView.builder(
-                      controller: _controller,
-                      itemCount: 5,
-                      itemBuilder: (_, __) => Padding(
-                        padding:
-                        const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Card(
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16.0),
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.grey[100]!,
+                          child: PageView.builder(
+                            controller: _controller,
+                            itemCount: 5,
+                            itemBuilder: (_, __) => Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Card(
+                                elevation: 4,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16.0),
+                                ),
+                                child: Container(),
+                              ),
+                            ),
                           ),
-                          child: Container(),
-                        ),
-                      ),
-                    ),
-                  )
+                        )
                       : PageView.builder(
-                    controller: _controller,
-                    itemCount: newsList.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding:
-                        const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Card(
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16.0),
-                          ),
-                          child: Stack(
-                            children: [
-                              SizedBox(
-                                width: double.infinity,
-                                child: ClipRRect(
-                                  borderRadius:
-                                  BorderRadius.circular(16.0),
-                                  child: Image.network(
-                                    newsList[index]['image'],
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) {
-                                      return const Center(
-                                        child: Icon(Icons.error),
-                                      );
-                                    },
-                                  ),
+                          controller: _controller,
+                          itemCount: newsList.length,
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Card(
+                                elevation: 4,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16.0),
                                 ),
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius:
-                                    const BorderRadius.only(
-                                      bottomLeft: Radius.circular(16.0),
-                                      bottomRight: Radius.circular(16.0),
+                                child: Stack(
+                                  children: [
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(16.0),
+                                        child: Image.network(
+                                          newsList[index]['image'],
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            return const Center(
+                                              child: Icon(Icons.error),
+                                            );
+                                          },
+                                        ),
+                                      ),
                                     ),
-                                    color:
-                                    Colors.black.withOpacity(0.6),
-                                  ),
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    newsList[index]['title'],
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                        fontSize: 16.0,
-                                        color: Colors.white),
-                                  ),
+                                    Positioned(
+                                      bottom: 0,
+                                      left: 0,
+                                      right: 0,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: const BorderRadius.only(
+                                            bottomLeft: Radius.circular(16.0),
+                                            bottomRight: Radius.circular(16.0),
+                                          ),
+                                          color: Colors.black.withOpacity(0.6),
+                                        ),
+                                        padding: EdgeInsets.all(8.0),
+                                        child: Text(
+                                          newsList[index]['title'],
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                              fontSize: 16.0,
+                                              color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ),
               ],
             ),
@@ -333,11 +336,21 @@ class _HomePageState extends State<HomePage> {
                           onChanged: (value) {
                             setState(() {
                               searchText = value.toUpperCase();
-                              filteredStocks = stockIndicators.where((active) =>
-                              active.symbol.toUpperCase().contains(searchText) ||
-                                  active.name.toUpperCase().contains(searchText) ||
-                                  active.sector.toUpperCase().contains(searchText) ||
-                                  active.segment.toUpperCase().contains(searchText)).toList();
+                              filteredStocks = stockIndicators
+                                  .where((active) =>
+                                      active.symbol
+                                          .toUpperCase()
+                                          .contains(searchText) ||
+                                      active.name
+                                          .toUpperCase()
+                                          .contains(searchText) ||
+                                      active.sector
+                                          .toUpperCase()
+                                          .contains(searchText) ||
+                                      active.segment
+                                          .toUpperCase()
+                                          .contains(searchText))
+                                  .toList();
                             });
                           },
                           decoration: const InputDecoration(
@@ -361,30 +374,12 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 Expanded(
-                  child: FutureBuilder(
-                    future: Future.delayed(const Duration(seconds: 3), () {}),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Shimmer.fromColors(
-                          baseColor: Colors.grey[300]!,
-                          highlightColor: Colors.grey[100]!,
-                          child: ListView.separated(
-                            itemBuilder: (_, __) => Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Container(
-                                height: 24.0,
-                                color: Colors.white,
-                              ),
-                            ),
-                            separatorBuilder: (_, __) => const Divider(),
-                            itemCount: 10,
-                          ),
-                        );
-                      } else {
-                        return ListView.separated(
+                  child: isLoading
+                      ? _buildLoadingScreen()
+                      : ListView.separated(
                           itemBuilder: (BuildContext context, int active) {
                             bool isSelected =
-                            selecionadas.contains(filteredStocks[active]);
+                                selecionadas.contains(filteredStocks[active]);
 
                             return ListTile(
                               shape: const RoundedRectangleBorder(
@@ -394,12 +389,13 @@ class _HomePageState extends State<HomePage> {
                               ),
                               leading: isSelected
                                   ? const CircleAvatar(
-                                child: Icon(Icons.check),
-                              )
+                                      child: Icon(Icons.check),
+                                    )
                                   : SizedBox(
-                                width: 40.0,
-                                child: _buildIcon(filteredStocks[active].icon), // Passa a URL do ícone
-                              ),
+                                      width: 40.0,
+                                      child: _buildIcon(filteredStocks[active]
+                                          .icon),
+                                    ),
                               title: Text(
                                 filteredStocks[active].symbol,
                                 style: const TextStyle(
@@ -416,26 +412,42 @@ class _HomePageState extends State<HomePage> {
                               onLongPress: () {
                                 setState(() {
                                   isSelected
-                                      ? selecionadas.remove(filteredStocks[active])
-                                      : selecionadas.add(filteredStocks[active]);
+                                      ? selecionadas
+                                          .remove(filteredStocks[active])
+                                      : selecionadas
+                                          .add(filteredStocks[active]);
                                 });
                               },
-                              onTap: () =>
-                                  showDetails(filteredStocks[active]),
+                              onTap: () => showDetails(filteredStocks[active]),
                             );
                           },
                           padding: const EdgeInsets.all(16.0),
                           separatorBuilder: (_, __) => const Divider(),
                           itemCount: filteredStocks.length,
-                        );
-                      }
-                    },
-                  ),
+                        ),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingScreen() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: ListView.separated(
+        itemBuilder: (_, __) => Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Container(
+            height: 24.0,
+            color: Colors.white,
+          ),
+        ),
+        separatorBuilder: (_, __) => const Divider(),
+        itemCount: 10,
       ),
     );
   }
@@ -467,22 +479,20 @@ class _HomePageState extends State<HomePage> {
         actions: [
           IconButton(
             icon: const Icon(
-              Icons.favorite, // Ícone de notificação
+              Icons.favorite,
               color: Colors.white,
               size: 16.0,
             ),
             onPressed: () {
-              // Adicione aqui a ação desejada para o ícone de notificação
             },
           ),
           IconButton(
             icon: const Icon(
-              Icons.notifications, // Ícone de notificação
+              Icons.notifications,
               color: Colors.white,
               size: 16.0,
             ),
             onPressed: () {
-              // Adicione aqui a ação desejada para o ícone de notificação
             },
           ),
         ],
