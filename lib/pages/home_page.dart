@@ -5,8 +5,10 @@ import 'package:flutter_investment_control/core/app_icons.dart';
 import 'package:flutter_investment_control/models/active_model.dart';
 import 'package:flutter_investment_control/pages/active/details/active_details_page.dart';
 import 'package:flutter_investment_control/pages/active/active_page.dart';
+import 'package:flutter_investment_control/services/api_brapi_get_logo.dart';
 import 'package:flutter_investment_control/services/api_stocks_ibovespa.dart';
 import 'package:flutter_investment_control/widgets/btc/bitcoin_card_widget.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
@@ -19,18 +21,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Active> selecionadas = [];
-  List<Active> filteredStocks =
-      []; // Adicione esta linha para declarar filteredStocks
-  String searchText =
-      ''; // Variável de estado para armazenar o texto de pesquisa
-  NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
-
-  StockIbovespaApi api = StockIbovespaApi();
-  List<Active> stockIndicators = [];
-
-  final PageController _controller = PageController();
-  int _currentPage = 0;
   final List<Map<String, dynamic>> newsList = [
     {
       "title": "Bitcoin reaches new all-time high!",
@@ -59,7 +49,22 @@ class _HomePageState extends State<HomePage> {
     },
   ];
 
+  List<Active> selecionadas = [];
+  List<Active> filteredStocks = [];
+  String searchText = '';
+  NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
+
+  StockIbovespaApi api = StockIbovespaApi();
+  ApiBrapiGetLogo apiBrapi = ApiBrapiGetLogo();
+  List<Active> stockIndicators = [];
+
+  final PageController _controller = PageController();
+  int _currentPage = 0;
+
+  TextEditingController _searchController = TextEditingController();
+
   late Timer _timer;
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -76,7 +81,6 @@ class _HomePageState extends State<HomePage> {
         curve: Curves.easeInOut,
       );
     });
-    // (stockIndicators);
     fetchData();
   }
 
@@ -84,111 +88,82 @@ class _HomePageState extends State<HomePage> {
   void dispose() {
     _timer.cancel();
     _controller.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
   fetchData() async {
-    var data = await api.fetchStockIndicators();
-    filteredStocks = data.map((item) => Active(
-      icon: AppIcons.btc,
-      name: item['name'],
-      symbol: item['symbol'],
-      lastPrice: item['lastPrice'].toDouble(),
-      sector: item['sector'],
-      segment: item['segment'],
-      dividendYield: item['dividendYield'].toDouble(),
-      lastYearHigh: item['lastYearHigh'].toDouble(),
-      lastYearLow: item['lastYearLow'].toDouble()
-    )).toList();
+    try {
+      var data = await api.fetchStockIndicators();
+      var logoUrls = await apiBrapi.fetchLogoUrls();
 
-    setState(() {
-      stockIndicators = filteredStocks;
-    });
-  }
+      for (var item in data) {
+        var assetDetails = logoUrls.firstWhere(
+          (element) => element['ticker'] == item['symbol'],
+          orElse: () => {},
+        );
 
-  AppBar appBarDynamics() {
-    if (selecionadas.isEmpty) {
-      return AppBar(
-        title: const Text(
-          'worthy',
-          style: TextStyle(
-            fontSize: 18,
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Colors.black,
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.favorite, // Ícone de notificação
-              color: Colors.white,
-              size: 20.0,
-            ),
-            onPressed: () {
-              // Adicione aqui a ação desejada para o ícone de notificação
-            },
-          ),
-          IconButton(
-            icon: const Icon(
-              Icons.notifications, // Ícone de notificação
-              color: Colors.white,
-              size: 20.0,
-            ),
-            onPressed: () {
-              // Adicione aqui a ação desejada para o ícone de notificação
-            },
-          ),
-        ],
-      );
-    } else {
-      return AppBar(
-        backgroundColor: Colors.black,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            setState(() {
-              selecionadas = [];
-            });
-          },
-        ),
-        title: Text('${selecionadas.length} selecionadas'),
-      );
+        setState(() {
+          stockIndicators.add(Active(
+            icon: assetDetails.isNotEmpty
+                ? assetDetails['logoUrl']
+                : AppIcons.btc,
+            name: item['name'],
+            symbol: item['symbol'],
+            lastPrice: item['lastPrice'].toDouble(),
+            sector: item['sector'],
+            segment: item['segment'],
+            dividendYield: item['dividendYield'].toDouble(),
+            lastYearHigh: item['lastYearHigh'].toDouble(),
+            lastYearLow: item['lastYearLow'].toDouble(),
+          ));
+          filteredStocks = stockIndicators;
+          isLoading = false; // Set isLoading to false after data is fetched
+        });
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
     }
   }
 
-  showDetails(Active active) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ActiveDetailsPage(active: active),
-      ),
-    );
-  }
+  Widget _buildIcon(String? iconUrl) {
+    double avatarSize = 40.0;
 
-  navigateToWalletPage() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const AssetList(),
-      ),
-    );
-  }
-
-  navigateToBtcPage() {
-    final List<String> newsList = [
-      "Bitcoin reaches new all-time high!",
-      "Major companies now accepting Bitcoin as payment",
-      "Bitcoin price analysis: Is it the right time to invest?",
-      "Government regulations shake up the Bitcoin market",
-      "Top 5 Bitcoin wallets for secure storage",
-    ];
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => BitcoinCard(),
-      ),
-    );
+    if (iconUrl != null && iconUrl.isNotEmpty && iconUrl.endsWith('.svg')) {
+      if (iconUrl == 'https://brapi.dev/favicon.svg') {
+        return CircleAvatar(
+          child: Image.asset(
+            AppIcons.btc,
+            height: avatarSize,
+            width: avatarSize,
+          ),
+          radius: avatarSize / 2.0,
+        );
+      } else {
+        return ClipOval(
+          child: CircleAvatar(
+            child: SvgPicture.network(
+              iconUrl,
+              placeholderBuilder: (BuildContext context) =>
+                  CircularProgressIndicator(),
+              headers: {'Accept': 'image/svg+xml'},
+              height: avatarSize,
+              width: avatarSize,
+            ),
+            radius: avatarSize / 2.0,
+          ),
+        );
+      }
+    } else {
+      return CircleAvatar(
+        child: Image.asset(
+          AppIcons.btc,
+          height: avatarSize,
+          width: avatarSize,
+        ),
+        radius: avatarSize / 2.0,
+      );
+    }
   }
 
   @override
@@ -248,14 +223,13 @@ class _HomePageState extends State<HomePage> {
                 ),
                 SizedBox(
                   height: 200,
-                  child: stockIndicators
-                          .isEmpty // Verifica se os dados estão vazios
+                  child: stockIndicators.isEmpty
                       ? Shimmer.fromColors(
                           baseColor: Colors.grey[300]!,
                           highlightColor: Colors.grey[100]!,
                           child: PageView.builder(
                             controller: _controller,
-                            itemCount: 5, // Define um valor fixo para o shimmer
+                            itemCount: 5,
                             itemBuilder: (_, __) => Padding(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 8.0),
@@ -264,8 +238,7 @@ class _HomePageState extends State<HomePage> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16.0),
                                 ),
-                                child:
-                                    Container(), // Container vazio para o efeito shimmer
+                                child: Container(),
                               ),
                             ),
                           ),
@@ -359,51 +332,51 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Expanded(
                         child: TextField(
+                          controller: _searchController,
                           onChanged: (value) {
                             setState(() {
-                              searchText = value.toLowerCase(); // Converta o texto de pesquisa para minúsculas
-                              filteredStocks = stockIndicators.where((active) =>
-                              active.symbol.toLowerCase().contains(searchText) || // Verifique se o símbolo contém o texto de pesquisa
-                                  active.name.toLowerCase().contains(searchText) || // Verifique se o nome contém o texto de pesquisa
-                                  active.sector.toLowerCase().contains(searchText) || // Verifique se o setor contém o texto de pesquisa
-                                  active.segment.toLowerCase().contains(searchText) // Verifique se o segmento contém o texto de pesquisa
-                              ).toList();
+                              searchText = value.toUpperCase();
+                              filteredStocks = stockIndicators
+                                  .where((active) =>
+                                      active.symbol
+                                          .toUpperCase()
+                                          .contains(searchText) ||
+                                      active.name
+                                          .toUpperCase()
+                                          .contains(searchText) ||
+                                      active.sector
+                                          .toUpperCase()
+                                          .contains(searchText) ||
+                                      active.segment
+                                          .toUpperCase()
+                                          .contains(searchText))
+                                  .toList();
                             });
                           },
                           decoration: const InputDecoration(
-                            hintText: 'search',
+                            hintText: 'Search',
                             border: InputBorder.none,
                           ),
+                          textCapitalization: TextCapitalization.characters,
                         ),
                       ),
-                      const Icon(Icons.search, color: Colors.grey),
+                      IconButton(
+                        icon: Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            _searchController.clear();
+                            searchText = '';
+                            filteredStocks = stockIndicators;
+                          });
+                        },
+                      ),
                     ],
                   ),
                 ),
                 Expanded(
-                  child: FutureBuilder(
-                    future: Future.delayed(const Duration(seconds: 3), () {}),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        // Exibe shimmer enquanto aguarda
-                        return Shimmer.fromColors(
-                          baseColor: Colors.grey[300]!,
-                          highlightColor: Colors.grey[100]!,
-                          child: ListView.separated(
-                            itemBuilder: (_, __) => Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Container(
-                                height: 24.0, // Altura do shimmer
-                                color: Colors.white, // Cor do shimmer
-                              ),
-                            ),
-                            separatorBuilder: (_, __) => const Divider(),
-                            itemCount: 10, // Define um valor para o shimmer
-                          ),
-                        );
-                      } else {
-                        // Exibe o conteúdo após o carregamento
-                        return ListView.separated(
+                  child: isLoading
+                      ? _buildLoadingScreen()
+                      : ListView.separated(
                           itemBuilder: (BuildContext context, int active) {
                             bool isSelected =
                                 selecionadas.contains(filteredStocks[active]);
@@ -420,7 +393,8 @@ class _HomePageState extends State<HomePage> {
                                     )
                                   : SizedBox(
                                       width: 40.0,
-                                      child: Image.asset(AppIcons.btc),
+                                      child: _buildIcon(filteredStocks[active]
+                                          .icon),
                                     ),
                               title: Text(
                                 filteredStocks[active].symbol,
@@ -431,8 +405,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                               trailing: Text(
-                                real.format(
-                                    filteredStocks[active].lastPrice),
+                                real.format(filteredStocks[active].lastPrice),
                               ),
                               selected: isSelected,
                               tileColor: isSelected ? Colors.red : null,
@@ -451,15 +424,120 @@ class _HomePageState extends State<HomePage> {
                           padding: const EdgeInsets.all(16.0),
                           separatorBuilder: (_, __) => const Divider(),
                           itemCount: filteredStocks.length,
-                        );
-                      }
-                    },
-                  ),
+                        ),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingScreen() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: ListView.separated(
+        itemBuilder: (_, __) => Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Container(
+            height: 24.0,
+            color: Colors.white,
+          ),
+        ),
+        separatorBuilder: (_, __) => const Divider(),
+        itemCount: 10,
+      ),
+    );
+  }
+
+  AppBar appBarDynamics() {
+    if (selecionadas.isEmpty) {
+      return AppBar(
+        title: Row(
+          children: [
+            Image.asset(
+              AppIcons.logo_icon_02,
+              width: 17,
+            ),
+            const SizedBox(width: 5.0),
+            const Padding(
+              padding: EdgeInsets.only(top: 5),
+              child: Text(
+                'worthy',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.black,
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.favorite,
+              color: Colors.white,
+              size: 16.0,
+            ),
+            onPressed: () {
+            },
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.notifications,
+              color: Colors.white,
+              size: 16.0,
+            ),
+            onPressed: () {
+            },
+          ),
+        ],
+      );
+    } else {
+      return AppBar(
+        backgroundColor: Colors.black,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            setState(() {
+              selecionadas = [];
+              filteredStocks = stockIndicators;
+              _searchController.clear();
+            });
+          },
+        ),
+        title: Text('${selecionadas.length} selecionadas'),
+      );
+    }
+  }
+
+  showDetails(Active active) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ActiveDetailsPage(active: active),
+      ),
+    );
+  }
+
+  navigateToWalletPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const AssetList(),
+      ),
+    );
+  }
+
+  navigateToBtcPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BitcoinCard(),
       ),
     );
   }
