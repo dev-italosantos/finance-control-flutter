@@ -5,8 +5,10 @@ import 'package:flutter_investment_control/core/app_icons.dart';
 import 'package:flutter_investment_control/models/active_model.dart';
 import 'package:flutter_investment_control/pages/active/details/active_details_page.dart';
 import 'package:flutter_investment_control/pages/active/active_page.dart';
+import 'package:flutter_investment_control/services/api_brapi_get_logo.dart';
 import 'package:flutter_investment_control/services/api_stocks_ibovespa.dart';
 import 'package:flutter_investment_control/widgets/btc/bitcoin_card_widget.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
@@ -53,6 +55,7 @@ class _HomePageState extends State<HomePage> {
   NumberFormat real = NumberFormat.currency(locale: 'pt-br', name: 'R\$');
 
   StockIbovespaApi api = StockIbovespaApi();
+  ApiBrapiGetLogo apiBrapi = ApiBrapiGetLogo();
   List<Active> stockIndicators = [];
 
   final PageController _controller = PageController();
@@ -89,21 +92,74 @@ class _HomePageState extends State<HomePage> {
   }
 
   fetchData() async {
-    var data = await api.fetchStockIndicators();
-    setState(() {
-      stockIndicators = data.map((item) => Active(
-        icon: AppIcons.btc,
-        name: item['name'],
-        symbol: item['symbol'],
-        lastPrice: item['lastPrice'].toDouble(),
-        sector: item['sector'],
-        segment: item['segment'],
-        dividendYield: item['dividendYield'].toDouble(),
-        lastYearHigh: item['lastYearHigh'].toDouble(),
-        lastYearLow: item['lastYearLow'].toDouble(),
-      )).toList();
-      filteredStocks = stockIndicators;
-    });
+    try {
+      var data = await api.fetchStockIndicators();
+      var logoUrls = await apiBrapi.fetchLogoUrls();
+
+      for (var item in data) {
+        var assetDetails = logoUrls.firstWhere(
+              (element) => element['ticker'] == item['symbol'],
+          orElse: () => {},
+        );
+
+        setState(() {
+          stockIndicators.add(Active(
+            icon: assetDetails.isNotEmpty ? assetDetails['logoUrl'] : AppIcons.btc,
+            name: item['name'],
+            symbol: item['symbol'],
+            lastPrice: item['lastPrice'].toDouble(),
+            sector: item['sector'],
+            segment: item['segment'],
+            dividendYield: item['dividendYield'].toDouble(),
+            lastYearHigh: item['lastYearHigh'].toDouble(),
+            lastYearLow: item['lastYearLow'].toDouble(),
+          ));
+          filteredStocks = stockIndicators;
+        });
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
+    }
+  }
+
+  Widget _buildIcon(String? iconUrl) {
+    double avatarSize = 40.0;
+
+    if (iconUrl != null && iconUrl.isNotEmpty && iconUrl.endsWith('.svg')) {
+      if (iconUrl == 'https://brapi.dev/favicon.svg') {
+        return CircleAvatar(
+          child: Image.asset(
+            AppIcons.btc,
+            height: avatarSize,
+            width: avatarSize,
+          ),
+          radius: avatarSize / 2.0,
+        );
+      } else {
+        return ClipOval(
+          child: CircleAvatar(
+            child: SvgPicture.network(
+              iconUrl,
+              placeholderBuilder: (BuildContext context) =>
+                  CircularProgressIndicator(),
+              headers: {'Accept': 'image/svg+xml'},
+              height: avatarSize,
+              width: avatarSize,
+            ),
+            radius: avatarSize / 2.0,
+          ),
+        );
+      }
+    } else {
+      return CircleAvatar(
+        child: Image.asset(
+          AppIcons.btc,
+          height: avatarSize,
+          width: avatarSize,
+        ),
+        radius: avatarSize / 2.0,
+      );
+    }
   }
 
   @override
@@ -342,7 +398,7 @@ class _HomePageState extends State<HomePage> {
                               )
                                   : SizedBox(
                                 width: 40.0,
-                                child: Image.asset(AppIcons.btc),
+                                child: _buildIcon(filteredStocks[active].icon), // Passa a URL do ícone
                               ),
                               title: Text(
                                 filteredStocks[active].symbol,
